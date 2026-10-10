@@ -12,7 +12,7 @@ const Offers = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get('http://localhost:5005/api/products');
+        const res = await axios.get('https://vedha-karpooram.onrender.com/api/products');
         setProducts(res.data);
       } catch (err) {
         console.error(err);

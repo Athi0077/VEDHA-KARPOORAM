@@ -32,7 +32,7 @@ const Payment = () => {
           totalAmount: cartTotal,
           status: 'Paid'
         };
-        await axios.post('http://localhost:5005/api/orders', orderData);
+        await axios.post('https://vedha-karpooram.onrender.com/api/orders', orderData);
         
         setIsProcessing(false);
         setPaymentSuccess(true);

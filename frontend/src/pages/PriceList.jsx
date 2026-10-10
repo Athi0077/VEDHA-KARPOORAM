@@ -9,7 +9,7 @@ const PriceList = () => {
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const res = await axios.get('http://localhost:5005/api/prices');
+        const res = await axios.get('https://vedha-karpooram.onrender.com/api/prices');
         setPrices(res.data);
       } catch (err) {
         console.error(err);

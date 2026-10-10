@@ -31,7 +31,7 @@ const AdminDashboard = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:5005/api/products');
+      const res = await axios.get('https://vedha-karpooram.onrender.com/api/products');
       setProducts(res.data);
     } catch (err) {
       console.error(err);
@@ -40,7 +40,7 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get('http://localhost:5005/api/orders');
+      const res = await axios.get('https://vedha-karpooram.onrender.com/api/orders');
       setOrders(res.data);
     } catch (err) {
       console.error(err);
@@ -49,7 +49,7 @@ const AdminDashboard = () => {
 
   const fetchPrices = async () => {
     try {
-      const res = await axios.get('http://localhost:5005/api/prices');
+      const res = await axios.get('https://vedha-karpooram.onrender.com/api/prices');
       setPrices(res.data);
     } catch (err) {
       console.error(err);
@@ -70,7 +70,7 @@ const AdminDashboard = () => {
 
     setUploading(true);
     try {
-      const res = await axios.post('http://localhost:5005/api/upload', data, {
+      const res = await axios.post('https://vedha-karpooram.onrender.com/api/upload', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setFormData({ ...formData, image: res.data.imageUrl });
@@ -86,9 +86,9 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       if (editingId) {
-        await axios.put(`http://localhost:5005/api/products/${editingId}`, formData);
+        await axios.put(`https://vedha-karpooram.onrender.com/api/products/${editingId}`, formData);
       } else {
-        await axios.post('http://localhost:5005/api/products', formData);
+        await axios.post('https://vedha-karpooram.onrender.com/api/products', formData);
       }
       setFormData({ name: '', description: '', price: '', originalPrice: '', image: '' });
       setEditingId(null);
@@ -106,7 +106,7 @@ const AdminDashboard = () => {
   const handleDelete = async (id) => {
     if(window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await axios.delete(`http://localhost:5005/api/products/${id}`);
+        await axios.delete(`https://vedha-karpooram.onrender.com/api/products/${id}`);
         fetchProducts();
       } catch (err) {
         console.error(err);
@@ -118,9 +118,9 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       if (editingPriceId) {
-        await axios.put(`http://localhost:5005/api/prices/${editingPriceId}`, priceData);
+        await axios.put(`https://vedha-karpooram.onrender.com/api/prices/${editingPriceId}`, priceData);
       } else {
-        await axios.post('http://localhost:5005/api/prices', priceData);
+        await axios.post('https://vedha-karpooram.onrender.com/api/prices', priceData);
       }
       setPriceData({ title: '', amount: '', description: '', image: '' });
       setEditingPriceId(null);
@@ -139,7 +139,7 @@ const AdminDashboard = () => {
 
     setUploading(true);
     try {
-      const res = await axios.post('http://localhost:5005/api/upload', data, {
+      const res = await axios.post('https://vedha-karpooram.onrender.com/api/upload', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setPriceData({ ...priceData, image: res.data.imageUrl });
@@ -159,7 +159,7 @@ const AdminDashboard = () => {
   const handleDeletePrice = async (id) => {
     if(window.confirm('Are you sure you want to delete this price tier?')) {
       try {
-        await axios.delete(`http://localhost:5005/api/prices/${id}`);
+        await axios.delete(`https://vedha-karpooram.onrender.com/api/prices/${id}`);
         fetchPrices();
       } catch (err) {
         console.error(err);
