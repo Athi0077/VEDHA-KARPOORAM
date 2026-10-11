@@ -212,6 +212,7 @@ const seedProducts = async () => {
     console.log("Seeded initial products");
   }
 };
+
 mongoose.connection.once('open', seedProducts);
 
 // Start Server
