@@ -50,6 +50,8 @@ const OrderSchema = new mongoose.Schema({
   },
   items: Array,
   totalAmount: Number,
+  customerId: String,
+  couponCode: String,
   razorpayOrderId: String,
   paymentId: String,
   paymentMethod: { type: String, default: 'Online' },
@@ -148,13 +150,49 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+// Helpers for Customer ID and Coupon Code
+const generateCustomerId = () => Math.floor(1000000 + Math.random() * 9000000).toString();
+const generateCouponCode = () => {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  const digits = '0123456789';
+  let res = '';
+  for (let i = 0; i < 7; i++) res += letters.charAt(Math.floor(Math.random() * letters.length));
+  for (let i = 0; i < 3; i++) res += digits.charAt(Math.floor(Math.random() * digits.length));
+  return res;
+};
+
 app.post('/api/orders', async (req, res) => {
   try {
-    const newOrder = new Order(req.body);
+    const orderData = { ...req.body };
+    if (!orderData.customerId) {
+      orderData.customerId = generateCustomerId();
+    }
+    if (!orderData.couponCode) {
+      orderData.couponCode = generateCouponCode();
+    }
+    const newOrder = new Order(orderData);
     await newOrder.save();
     res.status(201).json(newOrder);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+app.put('/api/orders/:id', async (req, res) => {
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedOrder);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+    await Order.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Order deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -217,6 +255,8 @@ app.post('/api/payment/verify', async (req, res) => {
       customer: orderData?.customer,
       items: orderData?.items,
       totalAmount: orderData?.totalAmount,
+      customerId: orderData?.customerId || generateCustomerId(),
+      couponCode: orderData?.couponCode || generateCouponCode(),
       razorpayOrderId: razorpay_order_id || '',
       paymentId: razorpay_payment_id,
       paymentMethod: orderData?.paymentMethod || 'Online (Razorpay)',

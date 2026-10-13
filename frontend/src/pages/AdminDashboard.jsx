@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Package, ListOrdered, LogOut, Banknote } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, ListOrdered, LogOut, Banknote, Copy, Check } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
@@ -45,6 +45,72 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const [copiedCouponId, setCopiedCouponId] = useState(null);
+
+  const getCustomerId = (order) => {
+    if (order.customerId) return order.customerId;
+    if (!order._id) return '7492015';
+    let hash = 0;
+    for (let i = 0; i < order._id.length; i++) {
+      hash = (hash << 5) - hash + order._id.charCodeAt(i);
+      hash |= 0;
+    }
+    const num = (Math.abs(hash) % 9000000) + 1000000;
+    return num.toString();
+  };
+
+  const getCouponCode = (order) => {
+    if (order.couponCode) return order.couponCode;
+    if (!order._id) return 'shrdufg453';
+    const letters = 'abcdefghijklmnopqrstuvwxyz';
+    let hash = 0;
+    for (let i = 0; i < order._id.length; i++) {
+      hash = (hash << 5) - hash + order._id.charCodeAt(i);
+      hash |= 0;
+    }
+    let absHash = Math.abs(hash);
+    let str = '';
+    for (let i = 0; i < 7; i++) {
+      const idx = (absHash + i * 7 + (order._id.charCodeAt(i % order._id.length) || 0)) % 26;
+      str += letters[idx];
+    }
+    const digits = ((absHash % 900) + 100).toString();
+    return str + digits;
+  };
+
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      setOrders(prev =>
+        prev.map(o => (o._id === orderId ? { ...o, status: newStatus } : o))
+      );
+      await axios.put(`https://vedha-karpooram.onrender.com/api/orders/${orderId}`, {
+        status: newStatus
+      });
+    } catch (err) {
+      console.error('Failed to update status on server:', err);
+      alert('Could not update status on server. Please try again.');
+      fetchOrders();
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to delete this order?')) return;
+    try {
+      setOrders(prev => prev.filter(o => o._id !== orderId));
+      await axios.delete(`https://vedha-karpooram.onrender.com/api/orders/${orderId}`);
+    } catch (err) {
+      console.error('Failed to delete order on server:', err);
+      alert('Could not delete order on server.');
+      fetchOrders();
+    }
+  };
+
+  const copyCoupon = (code, id) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCouponId(id);
+    setTimeout(() => setCopiedCouponId(null), 2000);
   };
 
   const fetchPrices = async () => {
@@ -367,38 +433,150 @@ const AdminDashboard = () => {
 
           {activeTab === 'orders' && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-xl font-serif text-gray-900">Recent Orders</h2>
+              <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-serif text-gray-900">Recent Orders</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Manage customer orders and update delivery status</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-amber-50 text-amber-900 border border-amber-200 font-semibold px-3 py-1 rounded-full">
+                    Total: {orders.length} Orders
+                  </span>
+                </div>
               </div>
-              <div className="divide-y divide-gray-100">
-                {orders.map(order => (
-                  <div key={order._id} className="p-6">
-                    <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-                      <div>
-                        <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full mb-2">{order.status}</span>
-                        <h3 className="font-medium text-gray-900">{order.customer?.name}</h3>
-                        <p className="text-sm text-gray-500">{order.customer?.email} • {order.customer?.phone}</p>
-                        <p className="text-sm text-gray-500 mt-1 max-w-md">{order.customer?.address}, {order.customer?.pincode}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-400 mb-1">{new Date(order.createdAt).toLocaleDateString()}</p>
-                        <p className="font-bold text-amber-900 text-xl">₹{order.totalAmount}</p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-4 mt-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Order Items:</h4>
-                      <ul className="space-y-1">
-                        {order.items?.map((item, idx) => (
-                          <li key={idx} className="text-sm text-gray-600 flex justify-between">
-                            <span>{item.quantity}x {item.name}</span>
-                            <span>₹{item.price * item.quantity}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-                {orders.length === 0 && <div className="p-6 text-center text-gray-500">No orders yet.</div>}
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                  <thead>
+                    <tr className="bg-amber-900/5 text-amber-950 border-b border-gray-200 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
+                      <th className="py-3.5 px-3 text-center">S.No</th>
+                      <th className="py-3.5 px-3">Customer ID</th>
+                      <th className="py-3.5 px-3">Name</th>
+                      <th className="py-3.5 px-3">Email</th>
+                      <th className="py-3.5 px-3">Number</th>
+                      <th className="py-3.5 px-3 min-w-[200px]">Address</th>
+                      <th className="py-3.5 px-3 min-w-[150px]">Order Item</th>
+                      <th className="py-3.5 px-3 text-center">Quantity</th>
+                      <th className="py-3.5 px-3 font-bold text-amber-950">Amount</th>
+                      <th className="py-3.5 px-3 min-w-[130px]">Order Status</th>
+                      <th className="py-3.5 px-3 min-w-[140px]">Coupon Code</th>
+                      <th className="py-3.5 px-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {orders.map((order, index) => {
+                      const customerId = getCustomerId(order);
+                      const coupon = getCouponCode(order);
+                      const totalQty = order.items?.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0) || 0;
+
+                      return (
+                        <tr key={order._id || index} className="hover:bg-amber-50/20 transition-colors">
+                          <td className="py-3.5 px-3 text-center font-medium text-gray-500">
+                            {index + 1}
+                          </td>
+                          <td className="py-3.5 px-3 whitespace-nowrap">
+                            <span className="font-mono text-xs font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 shadow-xs">
+                              {customerId}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3 font-semibold text-gray-900 whitespace-nowrap">
+                            {order.customer?.name || 'N/A'}
+                          </td>
+                          <td className="py-3.5 px-3 text-gray-600 whitespace-nowrap">
+                            {order.customer?.email || 'N/A'}
+                          </td>
+                          <td className="py-3.5 px-3 font-mono text-gray-700 whitespace-nowrap">
+                            {order.customer?.phone || 'N/A'}
+                          </td>
+                          <td className="py-3.5 px-3 text-xs text-gray-600 min-w-[200px] max-w-[260px]">
+                            <p className="truncate font-medium text-gray-800" title={order.customer?.address}>
+                              {order.customer?.address || 'N/A'}
+                            </p>
+                            <p className="text-gray-400 text-[11px] truncate">
+                              {order.customer?.landmark ? order.customer.landmark + ', ' : ''}
+                              {order.customer?.pincode ? `PIN: ${order.customer.pincode}` : ''}
+                            </p>
+                          </td>
+                          <td className="py-3.5 px-3 text-xs text-gray-800 min-w-[150px]">
+                            <div className="space-y-0.5">
+                              {order.items && order.items.length > 0 ? (
+                                order.items.map((item, i) => (
+                                  <div key={i} className="truncate max-w-[180px]" title={item.name}>
+                                    • {item.name}
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-gray-400">No items</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                              {totalQty}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3 font-bold text-amber-950 whitespace-nowrap">
+                            ₹{order.totalAmount}
+                          </td>
+                          <td className="py-3.5 px-3 whitespace-nowrap">
+                            <select
+                              value={['Pending', 'Packing', 'Shipping', 'Delivered'].includes(order.status) ? order.status : 'Pending'}
+                              onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                              className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer transition-colors shadow-xs ${
+                                order.status === 'Delivered'
+                                  ? 'bg-green-50 text-green-700 border-green-300'
+                                  : order.status === 'Shipping'
+                                  ? 'bg-blue-50 text-blue-700 border-blue-300'
+                                  : order.status === 'Packing'
+                                  ? 'bg-purple-50 text-purple-700 border-purple-300'
+                                  : 'bg-amber-50 text-amber-700 border-amber-300'
+                              }`}
+                            >
+                              <option value="Pending">Pending</option>
+                              <option value="Packing">Packing</option>
+                              <option value="Shipping">Shipping</option>
+                              <option value="Delivered">Delivered</option>
+                            </select>
+                          </td>
+                          <td className="py-3.5 px-3 whitespace-nowrap">
+                            <div className="flex items-center space-x-1.5">
+                              <code className="px-2 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded text-xs font-mono font-bold tracking-wide">
+                                {coupon}
+                              </code>
+                              <button
+                                onClick={() => copyCoupon(coupon, order._id)}
+                                title="Copy Coupon Code"
+                                className="p-1 text-gray-400 hover:text-amber-800 hover:bg-amber-100/60 rounded transition-colors"
+                              >
+                                {copiedCouponId === order._id ? (
+                                  <Check className="w-3.5 h-3.5 text-green-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                            <button
+                              onClick={() => handleDeleteOrder(order._id)}
+                              title="Delete Order"
+                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {orders.length === 0 && (
+                      <tr>
+                        <td colSpan="12" className="py-8 text-center text-gray-500">
+                          No orders yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
