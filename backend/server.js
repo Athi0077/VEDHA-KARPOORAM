@@ -4,10 +4,18 @@ const cors = require('cors');
 const multer = require('multer');
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5005;
+
+// Razorpay Instance
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TV7hXMB718NUCg',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || '2x024WG8tE108d189huWK4ZU'
+});
 
 // Middleware
 app.use(cors());
@@ -39,6 +47,8 @@ const OrderSchema = new mongoose.Schema({
   },
   items: Array,
   totalAmount: Number,
+  razorpayOrderId: String,
+  paymentId: String,
   status: { type: String, default: 'Pending' },
   createdAt: { type: Date, default: Date.now }
 });
@@ -141,6 +151,78 @@ app.post('/api/orders', async (req, res) => {
     res.status(201).json(newOrder);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Razorpay Key Route
+app.get('/api/payment/key', (req, res) => {
+  res.json({ keyId: process.env.RAZORPAY_KEY_ID || 'rzp_live_TV7hXMB718NUCg' });
+});
+
+// Razorpay Create Order Route
+app.post('/api/payment/create-order', async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ error: 'Valid amount is required' });
+    }
+
+    const options = {
+      amount: Math.round(Number(amount) * 100), // amount in paise
+      currency: 'INR',
+      receipt: `receipt_${Date.now()}`
+    };
+
+    const order = await razorpay.orders.create(options);
+    res.json({
+      success: true,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      keyId: process.env.RAZORPAY_KEY_ID || 'rzp_live_TV7hXMB718NUCg'
+    });
+  } catch (err) {
+    console.error('Razorpay create order error:', err);
+    res.status(500).json({ error: err.message || 'Failed to create Razorpay order' });
+  }
+});
+
+// Razorpay Verify Payment Route
+app.post('/api/payment/verify', async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderData } = req.body;
+
+    if (!razorpay_payment_id) {
+      return res.status(400).json({ error: 'Payment ID is required' });
+    }
+
+    // Verify signature if both order_id and signature are present
+    if (razorpay_order_id && razorpay_signature) {
+      const generatedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '2x024WG8tE108d189huWK4ZU')
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest('hex');
+
+      if (generatedSignature !== razorpay_signature) {
+        return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+      }
+    }
+
+    // Save order in database
+    const newOrder = new Order({
+      customer: orderData?.customer,
+      items: orderData?.items,
+      totalAmount: orderData?.totalAmount,
+      razorpayOrderId: razorpay_order_id || '',
+      paymentId: razorpay_payment_id,
+      status: 'Paid'
+    });
+
+    await newOrder.save();
+    res.status(201).json({ success: true, message: 'Payment verified and order saved', order: newOrder });
+  } catch (err) {
+    console.error('Razorpay verify error:', err);
+    res.status(500).json({ error: err.message || 'Payment verification failed' });
   }
 });
 
