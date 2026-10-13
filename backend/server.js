@@ -11,6 +11,9 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5005;
 
+const dns = require("node:dns")
+dns.setServers(['8.8.8.8', '8.8.4.4'])
+
 // Razorpay Instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TV7hXMB718NUCg',
@@ -49,6 +52,7 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: Number,
   razorpayOrderId: String,
   paymentId: String,
+  paymentMethod: { type: String, default: 'Online' },
   status: { type: String, default: 'Pending' },
   createdAt: { type: Date, default: Date.now }
 });
@@ -215,6 +219,7 @@ app.post('/api/payment/verify', async (req, res) => {
       totalAmount: orderData?.totalAmount,
       razorpayOrderId: razorpay_order_id || '',
       paymentId: razorpay_payment_id,
+      paymentMethod: orderData?.paymentMethod || 'Online (Razorpay)',
       status: 'Paid'
     });
 
