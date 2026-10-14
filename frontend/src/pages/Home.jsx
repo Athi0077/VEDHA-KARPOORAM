@@ -80,13 +80,13 @@ const Home = () => {
               Experience the divine purity of Vedha Karpooram. Crafted with traditional methods for an aromatic, soot-free flame that elevates your spiritual rituals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/offers" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-amber-800 hover:bg-amber-900 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                Explore Offers
+              <Link to="/terms" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-amber-800 hover:bg-amber-900 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                Click for more Details
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
-              <Link to="/prices" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-amber-900 bg-white border border-amber-200 hover:bg-amber-50 rounded-lg shadow hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+              {/* <Link to="/prices" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-amber-900 bg-white border border-amber-200 hover:bg-amber-50 rounded-lg shadow hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
                 View Prices
-              </Link>
+              </Link> */}
             </div>
           </div>
 

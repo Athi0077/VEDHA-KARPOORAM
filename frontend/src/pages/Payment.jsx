@@ -109,7 +109,7 @@ const Payment = () => {
         phone: customer?.phone || ''
       },
       theme: {
-        color: '#78350f'
+        color: '#ff6201'
       },
       modal: {
         ondismiss: () => {

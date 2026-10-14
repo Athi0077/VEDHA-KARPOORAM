@@ -12,6 +12,7 @@ import Payment from './pages/Payment';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PriceList from './pages/PriceList';
+import TermsAndConditions from './pages/TermsAndConditions';
 import { CartProvider } from './context/CartContext';
 
 const AppLayout = () => {
@@ -36,6 +37,7 @@ const AppLayout = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/prices" element={<PriceList />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment" element={<Payment />} />

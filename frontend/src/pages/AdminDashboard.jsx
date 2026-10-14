@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Package, ListOrdered, LogOut, Banknote, Copy, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, ListOrdered, LogOut, Banknote, Copy, Check, Sparkles, Gift, CheckCircle } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
@@ -14,6 +14,17 @@ const AdminDashboard = () => {
   
   const [priceData, setPriceData] = useState({ title: '', amount: '', description: '', image: '' });
   const [editingPriceId, setEditingPriceId] = useState(null);
+
+  // Participate Product state
+  const [participateData, setParticipateData] = useState({
+    name: '',
+    price: '',
+    originalPrice: '',
+    description: '',
+    image: ''
+  });
+  const [participateUploading, setParticipateUploading] = useState(false);
+  const [participateSaved, setParticipateSaved] = useState(false);
   
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
@@ -26,6 +37,7 @@ const AdminDashboard = () => {
       fetchProducts();
       fetchOrders();
       fetchPrices();
+      fetchParticipateProduct();
     }
   }, [navigate]);
 
@@ -119,6 +131,57 @@ const AdminDashboard = () => {
       setPrices(res.data);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const fetchParticipateProduct = async () => {
+    try {
+      const res = await axios.get('https://vedha-karpooram.onrender.com/api/participate-product');
+      if (res.data) {
+        setParticipateData({
+          name: res.data.name || '',
+          price: res.data.price !== undefined ? res.data.price : '',
+          originalPrice: res.data.originalPrice !== undefined ? res.data.originalPrice : '',
+          description: res.data.description || '',
+          image: res.data.image || ''
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load participate product:', err);
+    }
+  };
+
+  const handleParticipateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('https://vedha-karpooram.onrender.com/api/participate-product', participateData);
+      setParticipateSaved(true);
+      setTimeout(() => setParticipateSaved(false), 3000);
+      alert('Participate Product updated successfully! It is now live on the Terms & Conditions page.');
+    } catch (err) {
+      console.error('Failed to save participate product:', err);
+      alert('Failed to save participate product. Please try again.');
+    }
+  };
+
+  const handleParticipateImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('image', file);
+
+    setParticipateUploading(true);
+    try {
+      const res = await axios.post('https://vedha-karpooram.onrender.com/api/upload', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setParticipateData(prev => ({ ...prev, image: res.data.imageUrl }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload image. You can also paste an image URL directly.');
+    } finally {
+      setParticipateUploading(false);
     }
   };
 
@@ -269,6 +332,13 @@ const AdminDashboard = () => {
           >
             <ListOrdered className="w-5 h-5" />
             <span>Orders</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('participate')}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'participate' ? 'bg-amber-100 text-amber-900 font-semibold' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'}`}
+          >
+            <Sparkles className="w-5 h-5 text-amber-700" />
+            <span>Participate Product</span>
           </button>
         </div>
 
@@ -577,6 +647,189 @@ const AdminDashboard = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'participate' && (
+            <div className="space-y-8 animate-in fade-in">
+              <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex flex-wrap items-center justify-between pb-6 mb-6 border-b border-gray-100 gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="p-2 bg-amber-100 text-amber-900 rounded-lg">
+                        <Sparkles className="w-5 h-5 text-amber-800" />
+                      </span>
+                      <h2 className="text-xl sm:text-2xl font-serif text-gray-900 font-bold">
+                        Participate Product Control
+                      </h2>
+                    </div>
+                    <p className="text-gray-500 text-xs sm:text-sm mt-1">
+                      Configure the product displayed in the Terms & Conditions contest participation container.
+                    </p>
+                  </div>
+                  {participateSaved && (
+                    <span className="inline-flex items-center text-xs font-semibold bg-green-100 text-green-800 px-3 py-1.5 rounded-full">
+                      <Check className="w-3.5 h-3.5 mr-1" />
+                      Live on Website!
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Form Column */}
+                  <form onSubmit={handleParticipateSubmit} className="lg:col-span-7 space-y-5">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+                        Product Name *
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={participateData.name}
+                        onChange={(e) => setParticipateData({ ...participateData, name: e.target.value })}
+                        placeholder="e.g. Vedha Festival Special Pooja Camphor Combo Pack"
+                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+                          Contest Offer Price (₹) *
+                        </label>
+                        <input
+                          required
+                          type="number"
+                          value={participateData.price}
+                          onChange={(e) => setParticipateData({ ...participateData, price: e.target.value })}
+                          placeholder="150"
+                          className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+                          Original Price (₹) (Optional)
+                        </label>
+                        <input
+                          type="number"
+                          value={participateData.originalPrice}
+                          onChange={(e) => setParticipateData({ ...participateData, originalPrice: e.target.value })}
+                          placeholder="250"
+                          className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+                        Product Description *
+                      </label>
+                      <textarea
+                        required
+                        rows="3"
+                        value={participateData.description}
+                        onChange={(e) => setParticipateData({ ...participateData, description: e.target.value })}
+                        placeholder="100% Pure, soot-free aromatic Bhimseni & round camphor tablets with 1 Official Contest Entry Ticket."
+                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+                        Product Image (URL or Upload File) *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Paste image URL (e.g. https://...)"
+                        value={participateData.image}
+                        onChange={(e) => setParticipateData({ ...participateData, image: e.target.value })}
+                        className="w-full mb-2 px-4 py-2 text-sm rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleParticipateImageUpload}
+                        className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200"
+                      />
+                      {participateUploading && (
+                        <p className="text-xs text-amber-600 mt-1 flex items-center">
+                          <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mr-1.5"></span>
+                          Uploading image...
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        className="w-full bg-amber-800 hover:bg-amber-900 text-white py-3.5 px-6 rounded-xl font-medium shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <Check className="w-5 h-5" />
+                        <span>Save & Publish Participate Product</span>
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Live Preview Column */}
+                  <div className="lg:col-span-5 bg-amber-50/50 rounded-2xl p-6 border border-amber-200/70">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                        User Side Live Preview
+                      </span>
+                      <span className="text-[10px] bg-green-100 text-green-800 font-semibold px-2 py-0.5 rounded-full">
+                        Real-time
+                      </span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="aspect-square rounded-xl bg-gray-100 overflow-hidden relative mb-3 border border-gray-100">
+                        {participateData.image ? (
+                          <img
+                            src={participateData.image}
+                            alt={participateData.name || 'Preview'}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+                            <Sparkles className="w-10 h-10 text-amber-300 mb-2" />
+                            <span className="text-xs">Product Image Preview</span>
+                          </div>
+                        )}
+                        {participateData.originalPrice && participateData.price && (
+                          <span className="absolute top-2.5 right-2.5 bg-amber-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
+                            {Math.round(((participateData.originalPrice - participateData.price) / participateData.originalPrice) * 100)}% OFF
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="font-serif font-bold text-gray-900 text-base mb-1">
+                        {participateData.name || 'Product Name Preview'}
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-3 line-clamp-2">
+                        {participateData.description || 'Description of the contest entry camphor pack...'}
+                      </p>
+
+                      <div className="bg-amber-50/60 p-3 rounded-xl border border-amber-100 mb-3 flex items-baseline space-x-2">
+                        <span className="text-2xl font-serif font-bold text-amber-950">
+                          ₹{participateData.price || '0'}
+                        </span>
+                        {participateData.originalPrice && (
+                          <span className="text-xs text-gray-400 line-through">
+                            ₹{participateData.originalPrice}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-green-700 font-semibold bg-green-50 px-1.5 py-0.5 rounded">
+                          Contest Price
+                        </span>
+                      </div>
+
+                      <div className="w-full bg-amber-800 text-white text-xs font-semibold py-2.5 rounded-xl text-center shadow-xs">
+                        Order Now & Pay ₹{participateData.price || '0'} with Razorpay
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

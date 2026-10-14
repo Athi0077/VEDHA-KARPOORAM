@@ -68,6 +68,16 @@ const PriceSchema = new mongoose.Schema({
 });
 const PriceList = mongoose.model('PriceList', PriceSchema);
 
+const ParticipateProductSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  originalPrice: { type: Number },
+  image: { type: String, required: true },
+  updatedAt: { type: Date, default: Date.now }
+});
+const ParticipateProduct = mongoose.model('ParticipateProduct', ParticipateProductSchema);
+
 // Admin Login Route
 app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
@@ -306,6 +316,53 @@ app.delete('/api/prices/:id', async (req, res) => {
     res.json({ message: 'Price deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Participate Product Routes
+app.get('/api/participate-product', async (req, res) => {
+  try {
+    let product = await ParticipateProduct.findOne();
+    if (!product) {
+      product = await ParticipateProduct.create({
+        name: "Vedha Festival Special Pooja Camphor Combo Pack",
+        description: "100% Pure, soot-free aromatic Bhimseni & round camphor tablets with 1 Official Contest Entry Ticket.",
+        price: 150,
+        originalPrice: 250,
+        image: "https://images.unsplash.com/photo-1620062839958-86d5e06263cb?q=80&w=600&auto=format&fit=crop"
+      });
+    }
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/participate-product', async (req, res) => {
+  try {
+    const { name, description, price, originalPrice, image } = req.body;
+    let product = await ParticipateProduct.findOne();
+    if (product) {
+      product.name = name;
+      product.description = description;
+      product.price = Number(price);
+      product.originalPrice = originalPrice ? Number(originalPrice) : undefined;
+      product.image = image;
+      product.updatedAt = new Date();
+      await product.save();
+    } else {
+      product = new ParticipateProduct({
+        name,
+        description,
+        price: Number(price),
+        originalPrice: originalPrice ? Number(originalPrice) : undefined,
+        image
+      });
+      await product.save();
+    }
+    res.json(product);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 
