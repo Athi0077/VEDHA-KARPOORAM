@@ -382,7 +382,7 @@ const Payment = () => {
             </div>
 
             {/* Option 2: Cash on Delivery (COD) */}
-            <div
+            {/* <div
               onClick={() => setPaymentMethod('cod')}
               className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                 paymentMethod === 'cod'
@@ -412,7 +412,7 @@ const Payment = () => {
                 onChange={() => setPaymentMethod('cod')}
                 className="w-4 h-4 text-amber-800 accent-amber-800"
               />
-            </div>
+            </div> */}
           </div>
 
           {/* Action Buttons based on selection */}

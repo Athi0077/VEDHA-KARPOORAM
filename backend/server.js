@@ -16,8 +16,8 @@ dns.setServers(['8.8.8.8', '8.8.4.4'])
 
 // Razorpay Instance
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TV7hXMB718NUCg',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '2x024WG8tE108d189huWK4ZU'
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TszYWkrVblEqQA',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'tHrMM07cPmc3CLEi9L8cfBYq'
 });
 
 // Middleware
@@ -251,7 +251,7 @@ app.post('/api/payment/verify', async (req, res) => {
     // Verify signature if both order_id and signature are present
     if (razorpay_order_id && razorpay_signature) {
       const generatedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '2x024WG8tE108d189huWK4ZU')
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'tHrMM07cPmc3CLEi9L8cfBYq')
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest('hex');
 
