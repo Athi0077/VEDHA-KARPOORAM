@@ -13,3 +13,64 @@
   --color-amber-900: #e05300;
   --color-amber-950: #ff6201;
 }
+
+/* Butterfly Animation Theme Adaptation */
+/* LIGHT MODE (Default) -> RICH GOLD COLOR */
+#butterfly-bg .wing::before,
+#butterfly-bg .wing::after {
+  background: linear-gradient(135deg, #F4C65D 0%, #D9A441 55%, #B88328 100%) !important;
+  border: 1px solid rgba(184, 131, 40, 0.45) !important;
+  box-shadow: 0 0 4px rgba(217, 164, 65, 0.35) !important;
+}
+
+#butterfly-bg > div > div::after,
+#butterfly-bg div:not(.wing)::after {
+  background: linear-gradient(180deg, #D9A441 0%, #996B15 100%) !important;
+  box-shadow: 0 0 3px rgba(184, 131, 40, 0.4) !important;
+}
+
+#butterfly-bg > div > div {
+  filter: drop-shadow(0 2px 4px rgba(217, 164, 65, 0.35));
+  will-change: transform;
+}
+
+/* DARK MODE -> GLOWING PURE WHITE COLOR */
+.dark #butterfly-bg .wing::before,
+.dark #butterfly-bg .wing::after,
+[data-theme="dark"] #butterfly-bg .wing::before,
+[data-theme="dark"] #butterfly-bg .wing::after,
+body.dark-mode #butterfly-bg .wing::before,
+body.dark-mode #butterfly-bg .wing::after,
+#butterfly-bg[data-theme="dark"] .wing::before,
+#butterfly-bg[data-theme="dark"] .wing::after {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6) !important;
+}
+
+.dark #butterfly-bg > div > div::after,
+.dark #butterfly-bg div:not(.wing)::after,
+[data-theme="dark"] #butterfly-bg > div > div::after,
+[data-theme="dark"] #butterfly-bg div:not(.wing)::after,
+body.dark-mode #butterfly-bg > div > div::after,
+body.dark-mode #butterfly-bg div:not(.wing)::after,
+#butterfly-bg[data-theme="dark"] > div > div::after,
+#butterfly-bg[data-theme="dark"] div:not(.wing)::after {
+  background: #FFFFFF !important;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.7) !important;
+}
+
+.dark #butterfly-bg > div > div,
+[data-theme="dark"] #butterfly-bg > div > div,
+body.dark-mode #butterfly-bg > div > div,
+#butterfly-bg[data-theme="dark"] > div > div {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5)) !important;
+  will-change: transform;
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  #butterfly-bg {
+    display: none !important;
+  }
+}

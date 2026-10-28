@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import ButterflyBg from './components/ButterflyBg';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -18,9 +20,11 @@ import { CartProvider } from './context/CartContext';
 const AppLayout = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const [theme] = useState('light');
 
   return (
     <div className="flex flex-col min-h-screen font-sans">
+      <ButterflyBg theme={theme} />
       {!isAdminRoute && (
         <div className="bg-amber-100 text-amber-900 text-center py-2 text-sm font-medium">
           A little light. A little joy. <a href="/offers" className="underline font-bold hover:text-amber-700 transition">Explore our celebration offer</a>
