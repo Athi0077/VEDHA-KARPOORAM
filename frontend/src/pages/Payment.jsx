@@ -95,7 +95,7 @@ const Payment = () => {
       key: effectiveKey,
       amount: Math.round(cartTotal * 100),
       currency: 'INR',
-      name: 'VEDHA KARPOORAM',
+      name: 'VEDHA DEVOTIONAL MART',
       description: 'Pure Camphor Products Order',
       image: '/favicon.svg',
       ...(rzpOrderId ? { order_id: rzpOrderId } : {}),

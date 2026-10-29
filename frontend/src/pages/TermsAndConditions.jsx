@@ -191,7 +191,7 @@ const TermsAndConditions = () => {
       key: effectiveKey,
       amount: Math.round(contestProduct.price * 100),
       currency: 'INR',
-      name: 'VEDHA KARPOORAM',
+      name: 'VEDHA DEVOTIONAL MART',
       description: 'Contest Entry - ' + contestProduct.name,
       image: '/favicon.svg',
       ...(rzpOrderId ? { order_id: rzpOrderId } : {}),
@@ -320,7 +320,7 @@ const TermsAndConditions = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center space-x-2 bg-amber-800 text-amber-100 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium mb-4 shadow-sm">
             <Sparkles className="w-4 h-4 text-amber-300" />
-            <span>Vedha Karpooram Celebration Lucky Draw</span>
+            <span>Vedha Devotional Mart Celebration Lucky Draw</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-serif text-amber-950 font-bold tracking-tight mb-4">
             Terms & Conditions
@@ -344,7 +344,7 @@ const TermsAndConditions = () => {
             </div>
             <div className="text-gray-600 text-sm sm:text-base leading-relaxed pl-11 space-y-2">
               <p>
-                The Vedha Karpooram Celebration Lucky Draw is conducted by Vedha Karpooram for valued customers across India. Participation in this promotion constitutes full and unconditional agreement to these terms.
+                The Vedha Devotional Mart Celebration Lucky Draw is conducted by Vedha Devotional Mart for valued customers across India. Participation in this promotion constitutes full and unconditional agreement to these terms.
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
                 <li>Participants must be residents of India aged 18 years or above.</li>
@@ -385,7 +385,7 @@ const TermsAndConditions = () => {
                 Winners for the 1st Prize, 2nd Prize, 3rd Prize, and other announced prize tiers will be selected through an unbiased computerized random draw system.
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>Prizes are non-transferable and cannot be exchanged for alternate cash amounts unless explicitly permitted by Vedha Karpooram.</li>
+                <li>Prizes are non-transferable and cannot be exchanged for alternate cash amounts unless explicitly permitted by Vedha Devotional Mart.</li>
                 <li>Winners will be notified via their registered mobile number and email within 7 working days of the draw.</li>
                 <li>Valid government-issued photo ID verification (Aadhaar/PAN) is required to claim the grand prizes.</li>
               </ul>
@@ -423,7 +423,7 @@ const TermsAndConditions = () => {
                 Due to the lucky draw ticket inclusion with contest combo packs, order cancellations are not permitted once the payment has been completed and the entry ticket is generated.
               </p>
               <p>
-                In the rare event of damaged transit goods, a replacement product will be provided upon proof of delivery damage. Vedha Karpooram reserves the right to modify or conclude the contest terms in accordance with applicable laws.
+                In the rare event of damaged transit goods, a replacement product will be provided upon proof of delivery damage. Vedha Devotional Mart reserves the right to modify or conclude the contest terms in accordance with applicable laws.
               </p>
             </div>
           </div>

@@ -1,13 +1,17 @@
 import { Link } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 const Footer = () => {
   return (
     <footer className="bg-[#ff6201] text-white py-12 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <Link to="/" className="flex flex-col items-start mb-4">
-            <span className="text-2xl font-serif tracking-widest text-white leading-none">VEDHA</span>
-            <span className="text-xs tracking-[0.3em] font-medium text-orange-100 mt-1">KARPOORAM</span>
+          <Link to="/" className="flex items-center mb-4" aria-label="Vedha Devotional Mart home">
+            <img src={logo} alt="" className="h-20 w-20 object-contain rounded-lg bg-white/10 p-1" />
+            <div className="flex flex-col items-start ml-3">
+              <span className="text-2xl font-serif tracking-widest text-white leading-none">VEDHA</span>
+              <span className="text-xs tracking-[0.12em] font-medium text-orange-100 mt-1">DEVOTIONAL MART</span>
+            </div>
           </Link>
           <p className="text-white/90 mt-4 leading-relaxed font-serif italic">
             For everyday rituals.<br/>For moments that matter.
@@ -33,7 +37,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-white/20 text-center text-sm text-white/80">
-        <small>© 2026 Vedha Karpooram · A brighter beginning</small>
+        <small>© 2026 Vedha Devotional Mart · A brighter beginning</small>
       </div>
     </footer>
   );

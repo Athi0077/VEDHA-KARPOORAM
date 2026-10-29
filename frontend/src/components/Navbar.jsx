@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Menu, ShoppingCart, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import logo from '../assets/logo.png';
 
 const Navbar = () => {
   const { cartCount } = useCart();
@@ -11,9 +12,12 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link to="/" className="flex flex-col items-start group">
-            <span className="text-2xl font-serif tracking-widest text-amber-900 leading-none group-hover:text-amber-700 transition-colors">VEDHA</span>
-            <span className="text-xs tracking-[0.3em] font-medium text-gray-500 mt-1">KARPOORAM</span>
+          <Link to="/" className="flex items-center group" aria-label="Vedha Devotional Mart home">
+            <img src={logo} alt="" className="h-30 w-30 object-contain" />
+            <div className="flex flex-col items-start ml-2">
+              <span className="text-2xl font-serif tracking-widest text-amber-900 leading-none group-hover:text-amber-700 transition-colors">VEDHA</span>
+              <span className="text-xs tracking-[0.12em] font-medium text-gray-500 mt-1">DEVOTIONAL MART</span>
+            </div>
           </Link>
           
           <nav className="hidden md:flex space-x-7">

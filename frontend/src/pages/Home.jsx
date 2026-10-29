@@ -77,7 +77,7 @@ const Home = () => {
               <span className="italic text-amber-700">Pure Devotion.</span>
             </h1>
             <p className="text-lg text-gray-600 mb-8 max-w-lg leading-relaxed">
-              Experience the divine purity of Vedha Karpooram. Crafted with traditional methods for an aromatic, soot-free flame that elevates your spiritual rituals.
+              Experience the divine purity of Vedha Devotional Mart. Crafted with traditional methods for an aromatic, soot-free flame that elevates your spiritual rituals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/terms" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-amber-800 hover:bg-amber-900 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -138,7 +138,7 @@ const Home = () => {
                     >
                       <img 
                         src={slide.image} 
-                        alt={slide.title || 'Vedha Karpooram Price Tier'} 
+                        alt={slide.title || 'Vedha Devotional Mart Price Tier'} 
                         className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-700" 
                       />
                       {/* Atmospheric gradient overlay for readability */}
@@ -238,7 +238,7 @@ const Home = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-serif text-amber-950 mb-4">Why Choose Vedha Karpooram?</h2>
+            <h2 className="text-3xl md:text-4xl font-serif text-amber-950 mb-4">Why Choose Vedha Devotional Mart?</h2>
             <div className="w-24 h-1 bg-amber-300 mx-auto rounded-full"></div>
           </div>
           
