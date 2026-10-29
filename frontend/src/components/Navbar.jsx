@@ -13,7 +13,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link to="/" className="flex items-center group" aria-label="Vedha Devotional Mart home">
-            <img src={logo} alt="" className="h-30 w-30 object-contain" />
+            <img src={logo} alt="" className="h-25 w-25 object-contain" />
             <div className="flex flex-col items-start ml-2">
               <span className="text-2xl font-serif tracking-widest text-amber-900 leading-none group-hover:text-amber-700 transition-colors">VEDHA</span>
               <span className="text-xs tracking-[0.12em] font-medium text-gray-500 mt-1">DEVOTIONAL MART</span>
@@ -57,7 +57,7 @@ const Navbar = () => {
           <div className="px-4 pt-2 pb-6 space-y-1">
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Home</Link>
             <Link to="/offers" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">The Offer</Link>
-            <Link to="/terms" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Terms & Conditions</Link>
+            {/* <Link to="/terms" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Terms & Conditions</Link> */}
             <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">About Us</Link>
             <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Contact</Link>
             <Link to="/orders" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-amber-700 hover:bg-amber-50 flex items-center mt-2 border-t border-gray-100">
