@@ -23,7 +23,7 @@ const Navbar = () => {
           <nav className="hidden md:flex space-x-7">
             <Link to="/" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Home</Link>
             <Link to="/offers" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">The Offer</Link>
-            <Link to="/terms" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Terms & Conditions</Link>
+            {/* <Link to="/terms" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Terms & Conditions</Link> */}
             <Link to="/about" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">About Us</Link>
             <Link to="/contact" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Contact</Link>
           </nav>
