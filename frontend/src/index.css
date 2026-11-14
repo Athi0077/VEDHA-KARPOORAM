@@ -74,3 +74,86 @@ body.dark-mode #butterfly-bg > div > div,
     display: none !important;
   }
 }
+
+/* Mobile Bottom Sheet Slide Up & Down Animations */
+@keyframes slideUpFromBottom {
+  0% {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDownToBottom {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes modalPopIn {
+  0% {
+    transform: scale(0.95) translateY(12px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes modalPopOut {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95) translateY(12px);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOutBackdrop {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.animate-slide-up-mobile {
+  animation: slideUpFromBottom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-slide-down-mobile {
+  animation: slideDownToBottom 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@media (min-width: 640px) {
+  .animate-slide-up-mobile {
+    animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .animate-slide-down-mobile {
+    animation: modalPopOut 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+}
+
+.animate-fade-in-backdrop {
+  animation: fadeInBackdrop 0.25s ease-out forwards;
+}
+
+.animate-fade-out-backdrop {
+  animation: fadeOutBackdrop 0.2s ease-in forwards;
+}
+
