@@ -15,6 +15,9 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PriceList from './pages/PriceList';
 import TermsAndConditions from './pages/TermsAndConditions';
+import CustomOrder from './pages/CustomOrder';
+import Profile from './pages/Profile';
+import BottomNavbar from './components/BottomNavbar';
 import { CartProvider } from './context/CartContext';
 
 const AppLayout = () => {
@@ -33,10 +36,12 @@ const AppLayout = () => {
       
       {!isAdminRoute && <Navbar />}
       
-      <main className="flex-grow">
+      <main className="flex-grow pb-16 md:pb-0">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/offers" element={<Offers />} />
+          <Route path="/custom-order" element={<CustomOrder />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/orders" element={<Orders />} />
@@ -51,6 +56,7 @@ const AppLayout = () => {
       </main>
       
       {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <BottomNavbar />}
     </div>
   );
 };

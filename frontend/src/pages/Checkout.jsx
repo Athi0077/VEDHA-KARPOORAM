@@ -6,13 +6,32 @@ import { ShieldCheck, MapPin } from 'lucide-react';
 const Checkout = () => {
   const { cartTotal } = useCart();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    landmark: '',
-    pincode: ''
+  const [formData, setFormData] = useState(() => {
+    try {
+      const savedProfile = JSON.parse(localStorage.getItem('vedha_user_profile') || 'null');
+      if (savedProfile) return savedProfile;
+      const savedOrders = JSON.parse(localStorage.getItem('vedha_orders') || '[]');
+      if (savedOrders.length > 0 && savedOrders[0]?.customer) {
+        return {
+          name: savedOrders[0].customer.name || '',
+          email: savedOrders[0].customer.email || '',
+          phone: savedOrders[0].customer.phone || '',
+          address: savedOrders[0].customer.address || '',
+          landmark: savedOrders[0].customer.landmark || '',
+          pincode: savedOrders[0].customer.pincode || ''
+        };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      landmark: '',
+      pincode: ''
+    };
   });
 
   const handleChange = (e) => {
@@ -21,6 +40,11 @@ const Checkout = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    try {
+      localStorage.setItem('vedha_user_profile', JSON.stringify(formData));
+    } catch (err) {
+      console.error('Failed to save profile on checkout:', err);
+    }
     navigate('/payment', { state: { customer: formData } });
   };
 

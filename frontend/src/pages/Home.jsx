@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Star, ShieldCheck, ChevronLeft, ChevronRight, Tag } from 'lucide-react';
+import { ArrowRight, Sparkles, Star, ShieldCheck, ChevronLeft, ChevronRight, Tag, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
 
 const Home = () => {
@@ -79,14 +79,16 @@ const Home = () => {
             <p className="text-lg text-gray-600 mb-8 max-w-lg leading-relaxed">
               Experience the divine purity of Vedha Devotional Mart. Crafted with traditional methods for an aromatic, soot-free flame that elevates your spiritual rituals.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Link to="/terms" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-amber-800 hover:bg-amber-900 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 Click for more Details
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
-              {/* <Link to="/prices" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-amber-900 bg-white border border-amber-200 hover:bg-amber-50 rounded-lg shadow hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
-                View Prices
-              </Link> */}
+              <Link to="/custom-order" className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-amber-950 bg-gradient-to-r from-amber-100 via-orange-100 to-amber-200 hover:from-amber-200 hover:to-orange-200 border-2 border-amber-600/50 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <ShoppingBag className="mr-2 w-5 h-5 text-amber-800" />
+                Custom Order
+                <ArrowRight className="ml-2 w-5 h-5 text-amber-800" />
+              </Link>
             </div>
           </div>
 

@@ -22,7 +22,8 @@ const Navbar = () => {
           
           <nav className="hidden md:flex space-x-7">
             <Link to="/" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Home</Link>
-            <Link to="/offers" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">The Offer</Link>
+            <Link to="/offers" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Products</Link>
+            <Link to="/custom-order" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Custom Order</Link>
             {/* <Link to="/terms" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Terms & Conditions</Link> */}
             <Link to="/about" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">About Us</Link>
             <Link to="/contact" className="text-gray-600 hover:text-amber-700 font-medium transition-colors">Contact</Link>
@@ -56,7 +57,8 @@ const Navbar = () => {
         <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0 z-50 animate-in slide-in-from-top-2">
           <div className="px-4 pt-2 pb-6 space-y-1">
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Home</Link>
-            <Link to="/offers" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">The Offer</Link>
+            <Link to="/offers" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Products</Link>
+            <Link to="/custom-order" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-amber-800 font-semibold hover:bg-amber-50">Custom Order</Link>
             {/* <Link to="/terms" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Terms & Conditions</Link> */}
             <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">About Us</Link>
             <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50">Contact</Link>

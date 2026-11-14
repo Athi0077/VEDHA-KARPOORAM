@@ -1,4 +1,4 @@
-import { ShoppingCart, Check, Sparkles, Flame } from 'lucide-react';
+import { ShoppingCart, Check, Sparkles, Flame, X, Info, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -8,6 +8,7 @@ const Offers = () => {
   const [addedItems, setAddedItems] = useState({});
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [detailProduct, setDetailProduct] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -72,7 +73,8 @@ const Offers = () => {
               return (
                 <div 
                   key={product._id} 
-                  className={`rounded-2xl sm:rounded-3xl p-3 sm:p-4.5 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 relative overflow-hidden ${
+                  onClick={() => setDetailProduct(product)}
+                  className={`rounded-2xl sm:rounded-3xl p-3 sm:p-4.5 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 relative overflow-hidden cursor-pointer ${
                     isOrange 
                       ? "bg-gradient-to-b from-[#ff6f00] via-[#f97316] to-[#ea580c] text-white shadow-orange-500/25 border border-orange-400/40" 
                       : "bg-gradient-to-b from-[#ffb300] via-[#f59e0b] to-[#d97706] text-white shadow-amber-500/25 border border-amber-300/50"
@@ -132,7 +134,10 @@ const Offers = () => {
 
                     {/* Add to Cart Button */}
                     <button 
-                      onClick={() => handleAddToCart(product)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(product);
+                      }}
                       className={`w-full mt-2.5 sm:mt-3 py-1.5 sm:py-2.5 px-2 sm:px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95 ${
                         addedItems[product._id] 
                           ? "bg-green-600 text-white" 
@@ -158,6 +163,124 @@ const Offers = () => {
           </div>
         )}
       </div>
+
+      {/* Product Full Details Modal */}
+      {detailProduct && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setDetailProduct(null)}
+        >
+          <div 
+            className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-amber-100 h-[88vh] sm:h-auto max-h-[92vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex-shrink-0 flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-amber-50/70">
+              <div className="inline-flex items-center space-x-1.5 text-xs font-semibold text-amber-900">
+                <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                <span>Product Full Details</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailProduct(null)}
+                className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors shadow-2xs"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 overscroll-contain">
+              <div className="relative h-44 sm:h-52 w-full rounded-2xl bg-amber-50/50 overflow-hidden border border-amber-100 flex items-center justify-center shadow-inner flex-shrink-0">
+                <img
+                  src={detailProduct.image}
+                  alt={detailProduct.name}
+                  className="w-full h-full object-contain p-2"
+                />
+                {detailProduct.originalPrice && Number(detailProduct.originalPrice) > Number(detailProduct.price) && (
+                  <span className="absolute top-3 right-3 text-xs font-extrabold text-white bg-red-600 px-2.5 py-1 rounded-full shadow-md">
+                    Save ₹{Number(detailProduct.originalPrice) - Number(detailProduct.price)} OFF
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <h2 className="text-xl sm:text-2xl font-serif font-bold text-amber-950 mb-1 leading-snug">
+                  {detailProduct.name}
+                </h2>
+                <div className="flex items-baseline space-x-2.5">
+                  <span className="text-2xl sm:text-3xl font-serif font-bold text-amber-900">
+                    ₹{detailProduct.price}
+                  </span>
+                  {detailProduct.originalPrice && Number(detailProduct.originalPrice) > Number(detailProduct.price) && (
+                    <span className="text-sm text-gray-400 line-through">
+                      ₹{detailProduct.originalPrice}
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-500 font-medium">Special Offer</span>
+                </div>
+              </div>
+
+              <div className="bg-amber-50/40 p-3.5 rounded-2xl border border-amber-100/70">
+                <h4 className="text-xs uppercase font-bold tracking-wider text-amber-900 mb-1 flex items-center">
+                  <Info className="w-3.5 h-3.5 mr-1.5 text-amber-700" />
+                  Description
+                </h4>
+                <p className="text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                  {detailProduct.description || "100% Pure, soot-free aromatic devotional camphor. Ideal for daily pooja, arati, meditation, and special temple rituals."}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-200/60 flex items-center space-x-2 text-gray-700">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>100% Pure & Sacred</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-200/60 flex items-center space-x-2 text-gray-700">
+                  <Flame className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                  <span>Soot-free White Flame</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Fixed Bottom Footer (Always Visible) */}
+            <div className="flex-shrink-0 p-3.5 sm:p-4 pb-6 sm:pb-4 border-t border-gray-100 bg-white flex items-center space-x-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddToCart(detailProduct);
+                }}
+                className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all flex items-center justify-center space-x-2 ${
+                  addedItems[detailProduct._id]
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gradient-to-r from-amber-800 to-orange-700 text-white shadow-md hover:from-amber-900 hover:to-orange-800'
+                }`}
+              >
+                {addedItems[detailProduct._id] ? (
+                  <>
+                    <Check className="w-4 h-4 text-white" />
+                    <span>Added to Cart!</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4 text-white" />
+                    <span>Add to Cart</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDetailProduct(null)}
+                className="py-3 px-5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
