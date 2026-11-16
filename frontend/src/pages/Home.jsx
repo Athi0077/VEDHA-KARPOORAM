@@ -13,8 +13,11 @@ import {
   X, 
   CheckCircle2, 
   Award, 
-  Truck, 
-  Heart
+  Truck,
+  Sun,
+  Package,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
@@ -202,6 +205,80 @@ const CATEGORIES = [
   }
 ];
 
+// Five Brand Promise Pillars specifically related to Vedha devotional products
+const BRAND_PILLARS = [
+  {
+    id: "vedic",
+    title: "Vedic Authenticity",
+    subtitle: "Ancient Ritual Wisdom",
+    tamil: "வேத நெறிமுறை",
+    tag: "Sacred Tradition",
+    icon: Flame,
+    iconBg: "bg-orange-100 text-orange-700",
+    borderActive: "border-orange-500",
+    description: "Formulated according to time-tested traditional recipes respecting temple sanctum rites and ancestral wisdom.",
+    highlight: "100% Agamic Principles",
+    linkText: "Explore Pure Camphor",
+    linkPath: "#products-section"
+  },
+  {
+    id: "purity",
+    title: "Zero Adulteration",
+    subtitle: "Uncompromised Sanctity",
+    tamil: "கலப்படமற்ற தூய்மை",
+    tag: "100% Pure",
+    icon: ShieldCheck,
+    iconBg: "bg-emerald-100 text-emerald-800",
+    borderActive: "border-emerald-500",
+    description: "Free from synthetic fillers, harmful chemicals, or soot-generating impurities. 100% sacred, clean ingredients.",
+    highlight: "Zero Black Soot & Clean Flame",
+    linkText: "View Purity Standard",
+    linkPath: "/about"
+  },
+  {
+    id: "powders",
+    title: "Sacred Powders",
+    subtitle: "Temple Abhishekams",
+    tamil: "புனித அபிஷேகப் பொருட்கள்",
+    tag: "Temple Grade",
+    icon: Sparkles,
+    iconBg: "bg-rose-100 text-rose-700",
+    borderActive: "border-rose-500",
+    description: "Temple-grade Kungumam, vibrant Manjal, holy cow-bhasma Thiruneeru & cooling Sandhanam for divine worship.",
+    highlight: "Natural Herbs & Cow Bhasma",
+    linkText: "Shop Sacred Powders",
+    linkPath: "/offers"
+  },
+  {
+    id: "camphor-dhoop",
+    title: "Pure Camphor & Dhoop",
+    subtitle: "Spiritual Cleansing",
+    tamil: "தூய கற்பூரம் & சாம்பிராணி",
+    tag: "Divine Flame",
+    icon: Sun,
+    iconBg: "bg-amber-100 text-amber-800",
+    borderActive: "border-amber-500",
+    description: "Clean soot-free Karpuram flame for mangala aarti and aromatic Benzoin Sambrani for spiritual aura purification.",
+    highlight: "Aromatic Fragrance",
+    linkText: "Shop Camphor & Sambrani",
+    linkPath: "/offers"
+  },
+  {
+    id: "kits",
+    title: "All-in-One Ritual Kits",
+    subtitle: "Complete Daily Pooja",
+    tamil: "பூஜை காம்போ கிட்",
+    tag: "Complete Ritual",
+    icon: Package,
+    iconBg: "bg-yellow-100 text-yellow-800",
+    borderActive: "border-yellow-500",
+    description: "Curated 7-in-1 pooja combos and custom sets packed with devotion and delivered safely to your home.",
+    highlight: "7 Sacred Items in One Box",
+    linkText: "Explore Pooja Combos",
+    linkPath: "/custom-order"
+  }
+];
+
 const Home = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -212,6 +289,38 @@ const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [detailProduct, setDetailProduct] = useState(null);
   const [isClosingModal, setIsClosingModal] = useState(false);
+
+  // Brand 5-Card Coverflow State (Looping Left to Right)
+  const [brandCardIndex, setBrandCardIndex] = useState(2);
+  const [isBrandHovered, setIsBrandHovered] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
+
+  // Auto loop brand cards every 3.5 seconds
+  useEffect(() => {
+    if (isBrandHovered) return;
+    const timer = setInterval(() => {
+      setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [isBrandHovered]);
+
+  const handleTouchStart = (e) => {
+    if (e.targetTouches && e.targetTouches[0]) {
+      setTouchStartX(e.targetTouches[0].clientX);
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX === null || !e.changedTouches || !e.changedTouches[0]) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (diff > 40) {
+      setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length);
+    } else if (diff < -40) {
+      setBrandCardIndex((prev) => (prev === 0 ? BRAND_PILLARS.length - 1 : prev - 1));
+    }
+    setTouchStartX(null);
+  };
 
   // Fetch live products from backend to ensure freshness
   useEffect(() => {
@@ -969,7 +1078,7 @@ const Home = () => {
       {/* 6. OUR BRAND SECTION                                           */}
       {/* ============================================================== */}
       <section className="py-20 sm:py-24 bg-white relative border-b border-amber-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           
           <div className="inline-flex items-center gap-2 bg-amber-100/80 text-amber-900 border border-amber-200 px-4 py-1 rounded-full text-xs font-bold mb-4">
             <Flame className="w-3.5 h-3.5 text-orange-600" />
@@ -987,36 +1096,182 @@ const Home = () => {
             At Vedha Devotional Mart, we believe every prayer deserves purity. We bring together essential devotional products that make your daily worship and special occasions more meaningful.
           </p>
 
-          {/* Three Pillar Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-            <div className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/70 hover:bg-amber-50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center mb-4">
-                <Flame className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-serif font-bold text-amber-950 mb-2">Vedic Authenticity</h3>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                Formulated according to time-tested traditional recipes respecting temple sanctum rites and ancestral wisdom.
-              </p>
-            </div>
+          {/* ============================================================== */}
+          {/* LAPTOP / DESKTOP VIEW: 3D Center Coverflow Carousel (Looping)  */}
+          {/* ============================================================== */}
+          <div 
+            className="hidden md:block relative h-[380px] lg:h-[400px] w-full max-w-6xl mx-auto overflow-hidden py-4 select-none"
+            onMouseEnter={() => setIsBrandHovered(true)}
+            onMouseLeave={() => setIsBrandHovered(false)}
+          >
+            {/* Left/Right Arrow Navigators */}
+            <button
+              onClick={() => setBrandCardIndex((prev) => (prev === 0 ? BRAND_PILLARS.length - 1 : prev - 1))}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white/95 hover:bg-white text-amber-950 border border-amber-200 shadow-xl hover:scale-110 transition-all cursor-pointer"
+              aria-label="Previous promise card"
+            >
+              <ChevronLeft className="w-5 h-5 text-orange-600" />
+            </button>
 
-            <div className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/70 hover:bg-amber-50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center mb-4">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-serif font-bold text-amber-950 mb-2">Zero Adulteration</h3>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                Free from synthetic fillers, harmful chemicals, or soot-generating impurities. 100% sacred ingredients.
-              </p>
-            </div>
+            <button
+              onClick={() => setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white/95 hover:bg-white text-amber-950 border border-amber-200 shadow-xl hover:scale-110 transition-all cursor-pointer"
+              aria-label="Next promise card"
+            >
+              <ChevronRight className="w-5 h-5 text-orange-600" />
+            </button>
 
-            <div className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/70 hover:bg-amber-50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-yellow-100 text-yellow-800 flex items-center justify-center mb-4">
-                <Heart className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-serif font-bold text-amber-950 mb-2">Devoted Service</h3>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                Every order is sanctified and packed with utmost reverence, ensuring it reaches your home in pristine condition.
-              </p>
+            {/* 5 Stacked Cards in 3D Perspective Loop */}
+            {BRAND_PILLARS.map((pillar, idx) => {
+              const Icon = pillar.icon;
+              let offset = (idx - brandCardIndex) % 5;
+              if (offset < -2) offset += 5;
+              if (offset > 2) offset -= 5;
+
+              const isCenter = offset === 0;
+
+              let transformStyle = 'translateX(-50%) scale(1.06)';
+              let zIndexStyle = 30;
+              let opacityStyle = 1;
+
+              if (offset === -1) {
+                transformStyle = 'translateX(calc(-50% - 195px)) scale(0.92)';
+                zIndexStyle = 20;
+                opacityStyle = 0.85;
+              } else if (offset === 1) {
+                transformStyle = 'translateX(calc(-50% + 195px)) scale(0.92)';
+                zIndexStyle = 20;
+                opacityStyle = 0.85;
+              } else if (offset === -2) {
+                transformStyle = 'translateX(calc(-50% - 365px)) scale(0.80)';
+                zIndexStyle = 10;
+                opacityStyle = 0.55;
+              } else if (offset === 2) {
+                transformStyle = 'translateX(calc(-50% + 365px)) scale(0.80)';
+                zIndexStyle = 10;
+                opacityStyle = 0.55;
+              }
+
+              return (
+                <div
+                  key={pillar.id}
+                  onClick={() => setBrandCardIndex(idx)}
+                  style={{
+                    left: '50%',
+                    transform: transformStyle,
+                    zIndex: zIndexStyle,
+                    opacity: opacityStyle
+                  }}
+                  className={`absolute top-4 w-[290px] lg:w-[320px] h-[310px] transition-all duration-500 ease-out cursor-pointer rounded-3xl p-6 text-left flex flex-col justify-between ${
+                    isCenter
+                      ? 'bg-white border-2 border-orange-500 shadow-2xl ring-4 ring-orange-200/50'
+                      : 'bg-white/95 border border-amber-200/80 shadow-lg hover:opacity-95'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`w-13 h-13 rounded-2xl ${pillar.iconBg} flex items-center justify-center shadow-xs`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        isCenter ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                      }`}>
+                        {pillar.tag}
+                      </span>
+                    </div>
+
+                    <div className="text-[11px] font-semibold text-amber-700 mb-1">{pillar.tamil}</div>
+                    <h3 className={`font-serif font-bold text-lg mb-2 leading-snug ${isCenter ? 'text-amber-950 text-xl' : 'text-gray-800'}`}>
+                      {pillar.title}
+                    </h3>
+                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
+                      {pillar.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-amber-100 flex items-center justify-between text-xs font-semibold text-orange-600">
+                    <span>{pillar.highlight}</span>
+                    {isCenter && <ArrowRight className="w-3.5 h-3.5" />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ============================================================== */}
+          {/* MOBILE VIEW: Normal Clean Centered Display with Swipe & Arrows */}
+          {/* ============================================================== */}
+          <div 
+            className="md:hidden px-2 select-none"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {(() => {
+              const activePillar = BRAND_PILLARS[brandCardIndex];
+              const ActiveIcon = activePillar.icon;
+              return (
+                <div className="bg-white rounded-3xl p-6 border-2 border-orange-500 shadow-xl text-left transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-14 h-14 rounded-2xl ${activePillar.iconBg} flex items-center justify-center shadow-xs`}>
+                      <ActiveIcon className="w-7 h-7" />
+                    </div>
+                    <span className="text-xs font-bold text-orange-700 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                      {activePillar.tag}
+                    </span>
+                  </div>
+
+                  <div className="text-xs font-semibold text-amber-700 mb-1">{activePillar.tamil}</div>
+                  <h3 className="text-xl font-serif font-bold text-amber-950 mb-2">{activePillar.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">{activePillar.description}</p>
+
+                  <div className="pt-4 border-t border-amber-100 flex items-center justify-between">
+                    <span className="text-xs font-bold text-orange-700">{activePillar.highlight}</span>
+                    
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => setBrandCardIndex((prev) => (prev === 0 ? BRAND_PILLARS.length - 1 : prev - 1))}
+                        className="p-2 rounded-full bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200"
+                        aria-label="Previous"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length)}
+                        className="p-2 rounded-full bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200"
+                        aria-label="Next"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* ============================================================== */}
+          {/* BOTTOM PILL SELECTOR (Inspired by User's Reference Screenshot) */}
+          {/* ============================================================== */}
+          <div className="mt-8 flex justify-center">
+            <div className="bg-white/95 backdrop-blur-md border border-amber-200/90 rounded-full p-1.5 shadow-md flex items-center gap-1 sm:gap-1.5 overflow-x-auto max-w-full">
+              {BRAND_PILLARS.map((pillar, idx) => {
+                const Icon = pillar.icon;
+                const isActive = brandCardIndex === idx;
+                return (
+                  <button
+                    key={pillar.id}
+                    onClick={() => setBrandCardIndex(idx)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-300 text-xs font-bold whitespace-nowrap cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-sm scale-105'
+                        : 'text-amber-900/70 hover:text-amber-950 hover:bg-amber-100/60'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className={isActive ? 'inline' : 'hidden sm:inline'}>{pillar.title}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
