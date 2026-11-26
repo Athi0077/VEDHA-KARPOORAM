@@ -40,6 +40,79 @@ const Offers = () => {
     }, 240);
   };
 
+  const getBulletPoints = (product) => {
+    if (!product) return [];
+    if (Array.isArray(product.bulletPoints) && product.bulletPoints.length > 0) {
+      return product.bulletPoints;
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem('vedha_custom_bullet_points') || '{}');
+      if (product._id && Array.isArray(saved[product._id]) && saved[product._id].length > 0) {
+        return saved[product._id];
+      }
+      if (product.name && Array.isArray(saved[product.name]) && saved[product.name].length > 0) {
+        return saved[product.name];
+      }
+    } catch {
+      // ignore
+    }
+    const lower = (product.name || '').toLowerCase();
+    if (lower.includes('karpuram') || lower.includes('camphor')) {
+      return [
+        "100% Pure Devotional Camphor: Authentic Bhimseni camphor formulation",
+        "Zero Ash Flame: Burns completely smokeless without black residue",
+        "Spiritual Fragrance: Purifies indoor air and invites positive devotional energy"
+      ];
+    }
+    if (lower.includes('all in one') || lower.includes('combo') || lower.includes('pack')) {
+      return [
+        "7 Sacred Pooja Items in One: Complete festival & daily worship kit",
+        "Individually Packed: Handy 50g packs of Camphor, Kumkum, Turmeric, Vibhuti, Sandal & Sambrani",
+        "Best Festive Value: Saves time and ensures untouched devotional sanctity"
+      ];
+    }
+    if (lower.includes('kungumam') || lower.includes('kumkum')) {
+      return [
+        "100% Pure Temple Grade: Traditional sacred red kumkum formulation",
+        "Auspicious Divine Blessing: Ideal for daily worship, sumangali pooja & festivals",
+        "Natural & Safe: Sourced from pure turmeric and sacred botanicals"
+      ];
+    }
+    if (lower.includes('manjal') || lower.includes('turmeric')) {
+      return [
+        "100% Pure Natural Turmeric: Handpicked high-curcumin golden haldi",
+        "Auspicious Pooja Essential: Perfect for abhishekams, mangala snaanam & rituals",
+        "Divine Fresh Aroma: Fresh sacred fragrance without artificial colors"
+      ];
+    }
+    if (lower.includes('thiruneeru') || lower.includes('vibhuti')) {
+      return [
+        "Sacred Cow-Bhasma Vibhuti: Prepared through traditional Vedic methods",
+        "Cooling Divine Ash: Brings peace of mind, positivity and spiritual focus",
+        "Pure & Unadulterated: Completely chemical-free traditional temple ash"
+      ];
+    }
+    if (lower.includes('sambrani') || lower.includes('dhoop')) {
+      return [
+        "Pure Benzoin Resin: Traditional aromatic cup sambrani formulation",
+        "Aura Cleansing Smoke: Purifies home energy and dispels negativity",
+        "Long-Lasting Fragrance: Soothing temple aroma for daily evening prayers"
+      ];
+    }
+    if (lower.includes('santhanam') || lower.includes('sandhanam') || lower.includes('sandal')) {
+      return [
+        "Pure Sandalwood Formulation: Genuine cooling chandan paste & powder",
+        "Sacred Deity Abhishekams: Ideal for applying on deities, forehead & yantras",
+        "Soothing Divine Fragrance: Calms senses and elevates spiritual focus"
+      ];
+    }
+    return [
+      "100% Pure & Sacred: Authentic devotional formulation",
+      "Traditional Temple Quality: Crafted for sacred daily pooja & rituals",
+      "Divine Purity Guaranteed: Chemical-free and safe for worship"
+    ];
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -296,18 +369,22 @@ const Offers = () => {
 
                         {/* Specifications List (Flipkart Style) */}
                         <ul className="space-y-1.5 text-sm text-gray-600 mb-3">
-                          <li className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>
-                            <span><strong>100% Pure Devotional Camphor:</strong> Authentic Bhimseni camphor formulation</span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>
-                            <span><strong>Zero Ash Flame:</strong> Burns completely smokeless without black residue</span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>
-                            <span><strong>Spiritual Fragrance:</strong> Purifies indoor air and invites positive devotional energy</span>
-                          </li>
+                          {getBulletPoints(product).map((point, pIdx) => {
+                            const colonIdx = point.indexOf(':');
+                            return (
+                              <li key={pIdx} className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>
+                                {colonIdx > -1 ? (
+                                  <span>
+                                    <strong>{point.slice(0, colonIdx + 1)}</strong>
+                                    {point.slice(colonIdx + 1)}
+                                  </span>
+                                ) : (
+                                  <span>{point}</span>
+                                )}
+                              </li>
+                            );
+                          })}
                           {product.description && (
                             <li className="flex items-start gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0 mt-1.5"></span>
@@ -469,6 +546,31 @@ const Offers = () => {
                   {detailProduct.description || "100% Pure, soot-free aromatic devotional camphor. Ideal for daily pooja, arati, meditation, and special temple rituals."}
                 </p>
               </div>
+
+              {/* Bullet Points in Modal */}
+              {detailProduct && getBulletPoints(detailProduct).length > 0 && (
+                <div className="bg-orange-50/40 p-3.5 rounded-2xl border border-orange-100/70">
+                  <h4 className="text-xs uppercase font-bold tracking-wider text-orange-950 mb-2 flex items-center">
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-orange-600" />
+                    Key Highlights
+                  </h4>
+                  <ul className="space-y-1.5 text-xs sm:text-sm text-gray-700">
+                    {getBulletPoints(detailProduct).map((point, pIdx) => {
+                      const colonIdx = point.indexOf(':');
+                      return (
+                        <li key={pIdx} className="flex items-start gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0 mt-1.5"></span>
+                          {colonIdx > -1 ? (
+                            <span><strong>{point.slice(0, colonIdx + 1)}</strong>{point.slice(colonIdx + 1)}</span>
+                          ) : (
+                            <span>{point}</span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-200/60 flex items-center space-x-2 text-gray-700">

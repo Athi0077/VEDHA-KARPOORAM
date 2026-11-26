@@ -35,7 +35,8 @@ const ProductSchema = new mongoose.Schema({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   originalPrice: { type: Number },
-  image: { type: String, required: true }
+  image: { type: String, required: true },
+  bulletPoints: { type: [String], default: [] }
 });
 const Product = mongoose.model('Product', ProductSchema);
 

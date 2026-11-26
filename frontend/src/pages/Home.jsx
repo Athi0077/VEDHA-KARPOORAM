@@ -15,9 +15,7 @@ import {
   Award, 
   Truck,
   Sun,
-  Package,
-  ChevronLeft,
-  ChevronRight
+  Package
 } from 'lucide-react';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
@@ -290,37 +288,8 @@ const Home = () => {
   const [detailProduct, setDetailProduct] = useState(null);
   const [isClosingModal, setIsClosingModal] = useState(false);
 
-  // Brand 5-Card Coverflow State (Looping Left to Right)
-  const [brandCardIndex, setBrandCardIndex] = useState(2);
-  const [isBrandHovered, setIsBrandHovered] = useState(false);
-  const [touchStartX, setTouchStartX] = useState(null);
-
-  // Auto loop brand cards every 3.5 seconds
-  useEffect(() => {
-    if (isBrandHovered) return;
-    const timer = setInterval(() => {
-      setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length);
-    }, 3500);
-    return () => clearInterval(timer);
-  }, [isBrandHovered]);
-
-  const handleTouchStart = (e) => {
-    if (e.targetTouches && e.targetTouches[0]) {
-      setTouchStartX(e.targetTouches[0].clientX);
-    }
-  };
-
-  const handleTouchEnd = (e) => {
-    if (touchStartX === null || !e.changedTouches || !e.changedTouches[0]) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX - touchEndX;
-    if (diff > 40) {
-      setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length);
-    } else if (diff < -40) {
-      setBrandCardIndex((prev) => (prev === 0 ? BRAND_PILLARS.length - 1 : prev - 1));
-    }
-    setTouchStartX(null);
-  };
+  // Brand 5-Card Marquee Selected Indicator State
+  const [brandCardIndex, setBrandCardIndex] = useState(0);
 
   // Fetch live products from backend to ensure freshness
   useEffect(() => {
@@ -1097,156 +1066,58 @@ const Home = () => {
           </p>
 
           {/* ============================================================== */}
-          {/* LAPTOP / DESKTOP VIEW: 3D Center Coverflow Carousel (Looping)  */}
+          {/* CONTINUOUS MARQUEE GLIDE (Endless Smooth Auto-Scroll)          */}
           {/* ============================================================== */}
-          <div 
-            className="hidden md:block relative h-[380px] lg:h-[400px] w-full max-w-6xl mx-auto overflow-hidden py-4 select-none"
-            onMouseEnter={() => setIsBrandHovered(true)}
-            onMouseLeave={() => setIsBrandHovered(false)}
-          >
-            {/* Left/Right Arrow Navigators */}
-            <button
-              onClick={() => setBrandCardIndex((prev) => (prev === 0 ? BRAND_PILLARS.length - 1 : prev - 1))}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white/95 hover:bg-white text-amber-950 border border-amber-200 shadow-xl hover:scale-110 transition-all cursor-pointer"
-              aria-label="Previous promise card"
-            >
-              <ChevronLeft className="w-5 h-5 text-orange-600" />
-            </button>
+          <div className="relative w-full overflow-hidden py-4 select-none group">
+            {/* Soft Edge Fade Gradients for Premium Look */}
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-white to-transparent z-20"></div>
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-white to-transparent z-20"></div>
 
-            <button
-              onClick={() => setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white/95 hover:bg-white text-amber-950 border border-amber-200 shadow-xl hover:scale-110 transition-all cursor-pointer"
-              aria-label="Next promise card"
-            >
-              <ChevronRight className="w-5 h-5 text-orange-600" />
-            </button>
+            {/* Seamless Infinite Marquee Track (Repeated for seamless loop) */}
+            <div className="animate-marquee-glide flex items-center gap-5 sm:gap-6">
+              {[...BRAND_PILLARS, ...BRAND_PILLARS].map((pillar, idx) => {
+                const Icon = pillar.icon;
+                const isSelected = brandCardIndex === (idx % BRAND_PILLARS.length);
 
-            {/* 5 Stacked Cards in 3D Perspective Loop */}
-            {BRAND_PILLARS.map((pillar, idx) => {
-              const Icon = pillar.icon;
-              let offset = (idx - brandCardIndex) % 5;
-              if (offset < -2) offset += 5;
-              if (offset > 2) offset -= 5;
-
-              const isCenter = offset === 0;
-
-              let transformStyle = 'translateX(-50%) scale(1.06)';
-              let zIndexStyle = 30;
-              let opacityStyle = 1;
-
-              if (offset === -1) {
-                transformStyle = 'translateX(calc(-50% - 195px)) scale(0.92)';
-                zIndexStyle = 20;
-                opacityStyle = 0.85;
-              } else if (offset === 1) {
-                transformStyle = 'translateX(calc(-50% + 195px)) scale(0.92)';
-                zIndexStyle = 20;
-                opacityStyle = 0.85;
-              } else if (offset === -2) {
-                transformStyle = 'translateX(calc(-50% - 365px)) scale(0.80)';
-                zIndexStyle = 10;
-                opacityStyle = 0.55;
-              } else if (offset === 2) {
-                transformStyle = 'translateX(calc(-50% + 365px)) scale(0.80)';
-                zIndexStyle = 10;
-                opacityStyle = 0.55;
-              }
-
-              return (
-                <div
-                  key={pillar.id}
-                  onClick={() => setBrandCardIndex(idx)}
-                  style={{
-                    left: '50%',
-                    transform: transformStyle,
-                    zIndex: zIndexStyle,
-                    opacity: opacityStyle
-                  }}
-                  className={`absolute top-4 w-[290px] lg:w-[320px] h-[310px] transition-all duration-500 ease-out cursor-pointer rounded-3xl p-6 text-left flex flex-col justify-between ${
-                    isCenter
-                      ? 'bg-white border-2 border-orange-500 shadow-2xl ring-4 ring-orange-200/50'
-                      : 'bg-white/95 border border-amber-200/80 shadow-lg hover:opacity-95'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`w-13 h-13 rounded-2xl ${pillar.iconBg} flex items-center justify-center shadow-xs`}>
-                        <Icon className="w-6 h-6" />
+                return (
+                  <div
+                    key={`${pillar.id}-${idx}`}
+                    onClick={() => setBrandCardIndex(idx % BRAND_PILLARS.length)}
+                    className={`w-[290px] sm:w-[320px] h-[310px] rounded-3xl p-6 text-left flex flex-col justify-between transition-all duration-300 cursor-pointer flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-white border-2 border-orange-500 shadow-2xl ring-4 ring-orange-200/60 scale-[1.02]'
+                        : 'bg-gradient-to-b from-amber-50/50 to-white border border-amber-200/80 shadow-md hover:border-orange-300 hover:shadow-xl hover:scale-[1.02]'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`w-13 h-13 rounded-2xl ${pillar.iconBg} flex items-center justify-center shadow-xs`}>
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          isSelected ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                        }`}>
+                          {pillar.tag}
+                        </span>
                       </div>
-                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
-                        isCenter ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-gray-50 text-gray-600 border-gray-200'
-                      }`}>
-                        {pillar.tag}
-                      </span>
+
+                      <div className="text-[11px] font-semibold text-amber-700 mb-1">{pillar.tamil}</div>
+                      <h3 className="font-serif font-bold text-lg text-amber-950 mb-2 leading-snug">
+                        {pillar.title}
+                      </h3>
+                      <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
+                        {pillar.description}
+                      </p>
                     </div>
 
-                    <div className="text-[11px] font-semibold text-amber-700 mb-1">{pillar.tamil}</div>
-                    <h3 className={`font-serif font-bold text-lg mb-2 leading-snug ${isCenter ? 'text-amber-950 text-xl' : 'text-gray-800'}`}>
-                      {pillar.title}
-                    </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                      {pillar.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-amber-100 flex items-center justify-between text-xs font-semibold text-orange-600">
-                    <span>{pillar.highlight}</span>
-                    {isCenter && <ArrowRight className="w-3.5 h-3.5" />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* ============================================================== */}
-          {/* MOBILE VIEW: Normal Clean Centered Display with Swipe & Arrows */}
-          {/* ============================================================== */}
-          <div 
-            className="md:hidden px-2 select-none"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            {(() => {
-              const activePillar = BRAND_PILLARS[brandCardIndex];
-              const ActiveIcon = activePillar.icon;
-              return (
-                <div className="bg-white rounded-3xl p-6 border-2 border-orange-500 shadow-xl text-left transition-all">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-14 h-14 rounded-2xl ${activePillar.iconBg} flex items-center justify-center shadow-xs`}>
-                      <ActiveIcon className="w-7 h-7" />
-                    </div>
-                    <span className="text-xs font-bold text-orange-700 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-                      {activePillar.tag}
-                    </span>
-                  </div>
-
-                  <div className="text-xs font-semibold text-amber-700 mb-1">{activePillar.tamil}</div>
-                  <h3 className="text-xl font-serif font-bold text-amber-950 mb-2">{activePillar.title}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">{activePillar.description}</p>
-
-                  <div className="pt-4 border-t border-amber-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-orange-700">{activePillar.highlight}</span>
-                    
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => setBrandCardIndex((prev) => (prev === 0 ? BRAND_PILLARS.length - 1 : prev - 1))}
-                        className="p-2 rounded-full bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200"
-                        aria-label="Previous"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => setBrandCardIndex((prev) => (prev + 1) % BRAND_PILLARS.length)}
-                        className="p-2 rounded-full bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200"
-                        aria-label="Next"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
+                    <div className="pt-3 border-t border-amber-100 flex items-center justify-between text-xs font-semibold text-orange-600">
+                      <span>{pillar.highlight}</span>
+                      <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
-                </div>
-              );
-            })()}
+                );
+              })}
+            </div>
           </div>
 
           {/* ============================================================== */}

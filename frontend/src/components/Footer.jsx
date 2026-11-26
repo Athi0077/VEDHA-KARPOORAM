@@ -1,9 +1,15 @@
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import footerBackground from '../assets/footer.png';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#ff6201] text-white py-12 mt-auto">
+    <footer
+      className="bg-cover bg-center text-white py-12 mt-auto"
+      style={{
+        backgroundImage: `linear-gradient(rgba(107, 47, 0, 0.72), rgba(107, 47, 0, 0.72)), url(${footerBackground})`,
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
           <Link to="/" className="flex items-center mb-4" aria-label="Vedha Devotional Mart home">

@@ -157,3 +157,23 @@ body.dark-mode #butterfly-bg > div > div,
   animation: fadeOutBackdrop 0.2s ease-in forwards;
 }
 
+/* Continuous Marquee Glide for Devotional Cards */
+@keyframes marqueeGlide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-glide {
+  display: flex;
+  width: max-content;
+  animation: marqueeGlide 28s linear infinite;
+}
+
+.animate-marquee-glide:hover {
+  animation-play-state: paused;
+}
+

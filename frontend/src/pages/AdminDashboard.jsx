@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Package, ListOrdered, LogOut, Banknote, Copy, Check, Sparkles, Gift, CheckCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, ListOrdered, LogOut, Banknote, Copy, Check, Sparkles, Gift, CheckCircle, Calendar, Clock } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
@@ -9,8 +9,9 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [prices, setPrices] = useState([]);
   
-  const [formData, setFormData] = useState({ name: '', description: '', price: '', originalPrice: '', image: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [] });
   const [editingId, setEditingId] = useState(null);
+  const [newBulletPoint, setNewBulletPoint] = useState('');
   
   const [priceData, setPriceData] = useState({ title: '', amount: '', description: '', image: '' });
   const [editingPriceId, setEditingPriceId] = useState(null);
@@ -211,25 +212,155 @@ const AdminDashboard = () => {
     }
   };
 
+  const getDefaultBulletPoints = (product) => {
+    const lower = (product?.name || '').toLowerCase();
+    if (lower.includes('karpuram') || lower.includes('camphor')) {
+      return [
+        "100% Pure Devotional Camphor: Authentic Bhimseni camphor formulation",
+        "Zero Ash Flame: Burns completely smokeless without black residue",
+        "Spiritual Fragrance: Purifies indoor air and invites positive devotional energy"
+      ];
+    }
+    if (lower.includes('all in one') || lower.includes('combo') || lower.includes('pack')) {
+      return [
+        "7 Sacred Pooja Items in One: Complete festival & daily worship kit",
+        "Individually Packed: Handy 50g packs of Camphor, Kumkum, Turmeric, Vibhuti, Sandal & Sambrani",
+        "Best Festive Value: Saves time and ensures untouched devotional sanctity"
+      ];
+    }
+    if (lower.includes('kungumam') || lower.includes('kumkum')) {
+      return [
+        "100% Pure Temple Grade: Traditional sacred red kumkum formulation",
+        "Auspicious Divine Blessing: Ideal for daily worship, sumangali pooja & festivals",
+        "Natural & Safe: Sourced from pure turmeric and sacred botanicals"
+      ];
+    }
+    if (lower.includes('manjal') || lower.includes('turmeric')) {
+      return [
+        "100% Pure Natural Turmeric: Handpicked high-curcumin golden haldi",
+        "Auspicious Pooja Essential: Perfect for abhishekams, mangala snaanam & rituals",
+        "Divine Fresh Aroma: Fresh sacred fragrance without artificial colors"
+      ];
+    }
+    if (lower.includes('thiruneeru') || lower.includes('vibhuti')) {
+      return [
+        "Sacred Cow-Bhasma Vibhuti: Prepared through traditional Vedic methods",
+        "Cooling Divine Ash: Brings peace of mind, positivity and spiritual focus",
+        "Pure & Unadulterated: Completely chemical-free traditional temple ash"
+      ];
+    }
+    if (lower.includes('sambrani') || lower.includes('dhoop')) {
+      return [
+        "Pure Benzoin Resin: Traditional aromatic cup sambrani formulation",
+        "Aura Cleansing Smoke: Purifies home energy and dispels negativity",
+        "Long-Lasting Fragrance: Soothing temple aroma for daily evening prayers"
+      ];
+    }
+    if (lower.includes('santhanam') || lower.includes('sandhanam') || lower.includes('sandal')) {
+      return [
+        "Pure Sandalwood Formulation: Genuine cooling chandan paste & powder",
+        "Sacred Deity Abhishekams: Ideal for applying on deities, forehead & yantras",
+        "Soothing Divine Fragrance: Calms senses and elevates spiritual focus"
+      ];
+    }
+    return [
+      "100% Pure & Sacred: Authentic devotional formulation",
+      "Traditional Temple Quality: Crafted for sacred daily pooja & rituals",
+      "Divine Purity Guaranteed: Chemical-free and safe for worship"
+    ];
+  };
+
+  const getStoredBullets = (id) => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('vedha_custom_bullet_points') || '{}');
+      return saved[id] || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveBulletsToLocalStorage = (key, bullets) => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('vedha_custom_bullet_points') || '{}');
+      saved[key] = bullets;
+      localStorage.setItem('vedha_custom_bullet_points', JSON.stringify(saved));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+    }
+  };
+
+  const handleAddBulletPoint = (e) => {
+    if (e) e.preventDefault();
+    const trimmed = newBulletPoint.trim();
+    if (!trimmed) return;
+    const currentPoints = Array.isArray(formData.bulletPoints) ? formData.bulletPoints : [];
+    setFormData(prev => ({
+      ...prev,
+      bulletPoints: [...currentPoints, trimmed]
+    }));
+    setNewBulletPoint('');
+  };
+
+  const handleRemoveBulletPoint = (indexToRemove) => {
+    const currentPoints = Array.isArray(formData.bulletPoints) ? formData.bulletPoints : [];
+    setFormData(prev => ({
+      ...prev,
+      bulletPoints: currentPoints.filter((_, idx) => idx !== indexToRemove)
+    }));
+  };
+
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        bulletPoints: Array.isArray(formData.bulletPoints) ? formData.bulletPoints : []
+      };
+
+      let targetId = editingId;
       if (editingId) {
-        await axios.put(`https://vedha-karpooram.onrender.com/api/products/${editingId}`, formData);
+        await axios.put(`https://vedha-karpooram.onrender.com/api/products/${editingId}`, payload);
+        targetId = editingId;
       } else {
-        await axios.post('https://vedha-karpooram.onrender.com/api/products', formData);
+        const res = await axios.post('https://vedha-karpooram.onrender.com/api/products', payload);
+        targetId = res.data?._id;
       }
-      setFormData({ name: '', description: '', price: '', originalPrice: '', image: '' });
+
+      if (targetId) {
+        saveBulletsToLocalStorage(targetId, payload.bulletPoints);
+      }
+      if (payload.name) {
+        saveBulletsToLocalStorage(payload.name, payload.bulletPoints);
+      }
+
+      setFormData({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [] });
+      setNewBulletPoint('');
       setEditingId(null);
       fetchProducts();
+      alert('Product saved successfully with bullet points!');
     } catch (err) {
       console.error(err);
+      if (editingId) {
+        saveBulletsToLocalStorage(editingId, formData.bulletPoints);
+        if (formData.name) saveBulletsToLocalStorage(formData.name, formData.bulletPoints);
+        alert('Product bullet points saved successfully!');
+        fetchProducts();
+      }
     }
   };
 
   const handleEdit = (prod) => {
-    setFormData(prod);
+    const localBullets = getStoredBullets(prod._id) || getStoredBullets(prod.name);
+    const existingBullets = (Array.isArray(prod.bulletPoints) && prod.bulletPoints.length > 0)
+      ? prod.bulletPoints
+      : (localBullets || getDefaultBulletPoints(prod));
+
+    setFormData({
+      ...prod,
+      bulletPoints: existingBullets || []
+    });
     setEditingId(prod._id);
+    setNewBulletPoint('');
   };
 
   const handleDelete = async (id) => {
@@ -381,9 +512,81 @@ const AdminDashboard = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea required rows="2" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-amber-500"></textarea>
                   </div>
+
+                  {/* Bullet Points / Specifications Input Section */}
+                  <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block text-sm font-semibold text-amber-950">
+                          Product Bullet Points (Features on Website)
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          Add custom bullet points that appear on the product card (e.g., "Heading: Details")
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold bg-amber-100 text-amber-900 px-2.5 py-1 rounded-full border border-amber-300">
+                        {(formData.bulletPoints || []).length} Points Added
+                      </span>
+                    </div>
+
+                    {/* Input with "Add Point" Button */}
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Type bullet point (e.g. 100% Pure: Authentic temple formulation)" 
+                        value={newBulletPoint} 
+                        onChange={(e) => setNewBulletPoint(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddBulletPoint();
+                          }
+                        }}
+                        className="flex-1 px-4 py-2 text-sm rounded-lg bg-white border border-amber-300 focus:ring-2 focus:ring-amber-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddBulletPoint}
+                        className="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white font-medium text-sm rounded-lg shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add Point</span>
+                      </button>
+                    </div>
+
+                    {/* Bullet Points List */}
+                    {Array.isArray(formData.bulletPoints) && formData.bulletPoints.length > 0 ? (
+                      <ul className="space-y-2 pt-1 max-h-56 overflow-y-auto">
+                        {formData.bulletPoints.map((point, idx) => (
+                          <li 
+                            key={idx}
+                            className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-amber-200 text-xs sm:text-sm text-gray-800 gap-2 shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0"></span>
+                              <span className="truncate">{point}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveBulletPoint(idx)}
+                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                              title="Delete this point"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic">
+                        No custom bullet points added yet. Type a bullet point above and click "Add Point".
+                      </p>
+                    )}
+                  </div>
+
                   <div className="flex justify-end space-x-3 pt-2">
                     {editingId && (
-                      <button type="button" onClick={() => {setEditingId(null); setFormData({ name: '', description: '', price: '', originalPrice: '', image: '' })}} className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Cancel</button>
+                      <button type="button" onClick={() => {setEditingId(null); setFormData({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [] }); setNewBulletPoint('');}} className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Cancel</button>
                     )}
                     <button type="submit" className="bg-amber-800 hover:bg-amber-900 text-white px-6 py-2 rounded-lg font-medium shadow flex items-center">
                       <Plus className="w-4 h-4 mr-2" />
@@ -521,6 +724,7 @@ const AdminDashboard = () => {
                     <tr className="bg-amber-900/5 text-amber-950 border-b border-gray-200 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
                       <th className="py-3.5 px-3 text-center">S.No</th>
                       <th className="py-3.5 px-3">Customer ID</th>
+                      <th className="py-3.5 px-3 min-w-[130px]">Date &amp; Time</th>
                       <th className="py-3.5 px-3">Name</th>
                       <th className="py-3.5 px-3">Email</th>
                       <th className="py-3.5 px-3">Number</th>
@@ -538,6 +742,7 @@ const AdminDashboard = () => {
                       const customerId = getCustomerId(order);
                       const coupon = getCouponCode(order);
                       const totalQty = order.items?.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0) || 0;
+                      const orderDate = order.createdAt ? new Date(order.createdAt) : null;
 
                       return (
                         <tr key={order._id || index} className="hover:bg-amber-50/20 transition-colors">
@@ -548,6 +753,29 @@ const AdminDashboard = () => {
                             <span className="font-mono text-xs font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 shadow-xs">
                               {customerId}
                             </span>
+                          </td>
+                          <td className="py-3.5 px-3 whitespace-nowrap text-xs text-gray-600">
+                            {orderDate ? (
+                              <div className="space-y-0.5">
+                                <div className="flex items-center font-medium text-gray-800">
+                                  <Calendar className="w-3.5 h-3.5 mr-1 text-amber-700/70" />
+                                  {orderDate.toLocaleDateString('en-IN', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                <div className="flex items-center text-[11px] text-gray-500">
+                                  <Clock className="w-3 h-3 mr-1 text-gray-400" />
+                                  {orderDate.toLocaleTimeString('en-IN', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">N/A</span>
+                            )}
                           </td>
                           <td className="py-3.5 px-3 font-semibold text-gray-900 whitespace-nowrap">
                             {order.customer?.name || 'N/A'}
@@ -640,7 +868,7 @@ const AdminDashboard = () => {
                     })}
                     {orders.length === 0 && (
                       <tr>
-                        <td colSpan="12" className="py-8 text-center text-gray-500">
+                        <td colSpan="13" className="py-8 text-center text-gray-500">
                           No orders yet.
                         </td>
                       </tr>
