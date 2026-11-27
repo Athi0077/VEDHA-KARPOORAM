@@ -21,11 +21,18 @@ import {
   Truck
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import {
+  getProductVariants,
+  getSelectedVariant,
+  getEffectivePricing,
+  buildCartProduct
+} from '../utils/productWeights';
 
 const Offers = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [addedItems, setAddedItems] = useState({});
+  const [selectedWeights, setSelectedWeights] = useState({});
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detailProduct, setDetailProduct] = useState(null);
@@ -128,7 +135,8 @@ const Offers = () => {
   }, []);
 
   const handleAddToCart = (product) => {
-    const productForCart = { ...product, id: product._id };
+    const selectedVariant = getSelectedVariant(product, selectedWeights);
+    const productForCart = buildCartProduct(product, selectedVariant);
     addToCart(productForCart);
     setAddedItems((prev) => ({ ...prev, [product._id]: true }));
     setTimeout(() => {
@@ -137,7 +145,8 @@ const Offers = () => {
   };
 
   const handleBuyNow = (product) => {
-    const productForCart = { ...product, id: product._id };
+    const selectedVariant = getSelectedVariant(product, selectedWeights);
+    const productForCart = buildCartProduct(product, selectedVariant);
     addToCart(productForCart);
     navigate('/checkout');
   };
@@ -218,11 +227,9 @@ const Offers = () => {
         ) : (
           <div className="space-y-3 sm:space-y-4">
             {filteredProducts.map((product) => {
-              const hasDiscount = product.originalPrice && Number(product.originalPrice) > Number(product.price);
-              const discount = hasDiscount ? Number(product.originalPrice) - Number(product.price) : 0;
-              const discountPercent = hasDiscount && product.originalPrice
-                ? Math.round((discount / Number(product.originalPrice)) * 100)
-                : 0;
+              const variants = getProductVariants(product);
+              const selectedVariant = getSelectedVariant(product, selectedWeights);
+              const { price, originalPrice, hasDiscount, discount, discountPercent } = getEffectivePricing(product, selectedVariant);
 
               return (
                 <div key={product._id}>
@@ -280,12 +287,35 @@ const Offers = () => {
                           <span className="text-[10px] text-green-700 font-medium">• Free Delivery</span>
                         </div>
 
+                        {/* Weight Selector (Mobile) */}
+                        {variants.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-1.5" onClick={(e) => e.stopPropagation()}>
+                            {variants.map((variant) => {
+                              const isSelected = selectedVariant?.weight === variant.weight;
+                              return (
+                                <button
+                                  key={variant.weight}
+                                  type="button"
+                                  onClick={() => setSelectedWeights(prev => ({ ...prev, [product._id]: variant.weight }))}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-amber-900 text-white border-amber-900'
+                                      : 'bg-amber-50 text-amber-900 border-amber-200'
+                                  }`}
+                                >
+                                  {variant.weight}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
                         {/* Pricing Row */}
                         <div className="flex items-baseline flex-wrap gap-1.5 mb-2">
-                          <span className="text-base font-extrabold text-gray-900">₹{product.price}</span>
+                          <span className="text-base font-extrabold text-gray-900">₹{price}</span>
                           {hasDiscount && (
                             <>
-                              <span className="text-xs text-gray-400 line-through">M.R.P: ₹{product.originalPrice}</span>
+                              <span className="text-xs text-gray-400 line-through">M.R.P: ₹{originalPrice}</span>
                               <span className="text-xs font-bold text-green-700">({discountPercent}% off)</span>
                             </>
                           )}
@@ -409,12 +439,40 @@ const Offers = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div>
+                        {/* Weight Selector (Desktop) */}
+                        {variants.length > 0 && (
+                          <div className="mb-3">
+                            <span className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                              Select Weight
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {variants.map((variant) => {
+                                const isSelected = selectedVariant?.weight === variant.weight;
+                                return (
+                                  <button
+                                    key={variant.weight}
+                                    type="button"
+                                    onClick={() => setSelectedWeights(prev => ({ ...prev, [product._id]: variant.weight }))}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-amber-900 text-white border-amber-900 shadow-xs'
+                                        : 'bg-amber-50/70 text-amber-900 border-amber-200 hover:bg-amber-100'
+                                    }`}
+                                  >
+                                    {variant.weight}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Pricing Row */}
                         <div className="mb-2">
                           <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-extrabold text-gray-900">₹{product.price}</span>
+                            <span className="text-3xl font-extrabold text-gray-900">₹{price}</span>
                             {hasDiscount && (
-                              <span className="text-sm text-gray-400 line-through">₹{product.originalPrice}</span>
+                              <span className="text-sm text-gray-400 line-through">₹{originalPrice}</span>
                             )}
                             {hasDiscount && (
                               <span className="text-sm font-bold text-green-700">{discountPercent}% off</span>
@@ -524,17 +582,50 @@ const Offers = () => {
                 <h2 className="text-xl sm:text-2xl font-serif font-bold text-amber-950 mb-1 leading-snug">
                   {detailProduct.name}
                 </h2>
-                <div className="flex items-baseline space-x-2.5">
-                  <span className="text-2xl sm:text-3xl font-serif font-bold text-amber-900">
-                    ₹{detailProduct.price}
-                  </span>
-                  {detailProduct.originalPrice && Number(detailProduct.originalPrice) > Number(detailProduct.price) && (
-                    <span className="text-sm text-gray-400 line-through">
-                      ₹{detailProduct.originalPrice}
-                    </span>
-                  )}
-                  <span className="text-xs text-gray-500 font-medium">Special Offer</span>
-                </div>
+                {(() => {
+                  const modalVariants = getProductVariants(detailProduct);
+                  const modalSelected = getSelectedVariant(detailProduct, selectedWeights);
+                  const modalPricing = getEffectivePricing(detailProduct, modalSelected);
+                  return (
+                    <>
+                      {modalVariants.length > 0 && (
+                        <div className="my-2.5">
+                          <span className="block text-xs font-semibold text-gray-600 mb-1.5">Select Weight:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {modalVariants.map((variant) => {
+                              const isSelected = modalSelected?.weight === variant.weight;
+                              return (
+                                <button
+                                  key={variant.weight}
+                                  type="button"
+                                  onClick={() => setSelectedWeights(prev => ({ ...prev, [detailProduct._id]: variant.weight }))}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-amber-900 text-white border-amber-900 shadow-xs'
+                                      : 'bg-amber-50/80 text-amber-900 border-amber-200 hover:bg-amber-100'
+                                  }`}
+                                >
+                                  {variant.weight}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-baseline space-x-2.5">
+                        <span className="text-2xl sm:text-3xl font-serif font-bold text-amber-900">
+                          ₹{modalPricing.price}
+                        </span>
+                        {modalPricing.hasDiscount && (
+                          <span className="text-sm text-gray-400 line-through">
+                            ₹{modalPricing.originalPrice}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-500 font-medium">Special Offer</span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="bg-amber-50/40 p-3.5 rounded-2xl border border-amber-100/70">

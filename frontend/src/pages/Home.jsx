@@ -19,6 +19,12 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
+import {
+  getProductVariants,
+  getSelectedVariant,
+  getEffectivePricing,
+  buildCartProduct
+} from '../utils/productWeights';
 
 // API Base URL
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vedha-karpooram.onrender.com';
@@ -283,6 +289,7 @@ const Home = () => {
 
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [addedItems, setAddedItems] = useState({});
+  const [selectedWeights, setSelectedWeights] = useState({});
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [detailProduct, setDetailProduct] = useState(null);
@@ -363,22 +370,19 @@ const Home = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    const cartProduct = {
-      ...product,
-      id: product._id || product.id
-    };
+    const baseId = product._id || product.id;
+    const selectedVariant = getSelectedVariant(product, selectedWeights);
+    const cartProduct = buildCartProduct(product, selectedVariant);
     addToCart(cartProduct);
-    setAddedItems(prev => ({ ...prev, [cartProduct.id]: true }));
+    setAddedItems(prev => ({ ...prev, [baseId]: true }));
     setTimeout(() => {
-      setAddedItems(prev => ({ ...prev, [cartProduct.id]: false }));
+      setAddedItems(prev => ({ ...prev, [baseId]: false }));
     }, 2000);
   };
 
   const handleBuyNow = (product) => {
-    const cartProduct = {
-      ...product,
-      id: product._id || product.id
-    };
+    const selectedVariant = getSelectedVariant(product, selectedWeights);
+    const cartProduct = buildCartProduct(product, selectedVariant);
     addToCart(cartProduct);
     navigate('/checkout');
   };
@@ -784,11 +788,9 @@ const Home = () => {
           {/* Product Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => {
-              const hasDiscount = product.originalPrice && product.originalPrice > product.price;
-              const discount = hasDiscount ? product.originalPrice - product.price : 0;
-              const discountPercent = hasDiscount 
-                ? Math.round((discount / product.originalPrice) * 100) 
-                : 0;
+              const variants = getProductVariants(product);
+              const selectedVariant = getSelectedVariant(product, selectedWeights);
+              const { price, originalPrice, hasDiscount, discount, discountPercent } = getEffectivePricing(product, selectedVariant);
 
               return (
                 <div
@@ -858,15 +860,38 @@ const Home = () => {
                         {product.description}
                       </p>
 
+                      {/* Weight Selector Pills */}
+                      {variants.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          {variants.map((variant) => {
+                            const isSelected = selectedVariant?.weight === variant.weight;
+                            return (
+                              <button
+                                key={variant.weight}
+                                type="button"
+                                onClick={() => setSelectedWeights(prev => ({ ...prev, [product._id]: variant.weight }))}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-900 text-white border-amber-900 shadow-xs'
+                                    : 'bg-amber-50/70 text-amber-900 border-amber-200 hover:bg-amber-100'
+                                }`}
+                              >
+                                {variant.weight}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
                       {/* Price Section */}
                       <div className="mt-4 flex items-baseline gap-2">
                         <span className="text-xl sm:text-2xl font-serif font-extrabold text-amber-950">
-                          ₹{product.price}
+                          ₹{price}
                         </span>
                         {hasDiscount && (
                           <>
                             <span className="text-xs text-gray-400 line-through">
-                              ₹{product.originalPrice}
+                              ₹{originalPrice}
                             </span>
                             <span className="text-xs font-bold text-green-700">
                               (Save ₹{discount})
@@ -1319,26 +1344,61 @@ const Home = () => {
                   {detailProduct.category || "Pooja Essentials"}
                 </p>
 
-                <p className="text-sm text-gray-700 leading-relaxed mb-6">
+                <p className="text-sm text-gray-700 leading-relaxed mb-4">
                   {detailProduct.description}
                 </p>
 
-                {/* Pricing */}
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-3xl font-serif font-bold text-amber-950">
-                    ₹{detailProduct.price}
-                  </span>
-                  {detailProduct.originalPrice && (
-                    <span className="text-sm text-gray-400 line-through">
-                      ₹{detailProduct.originalPrice}
-                    </span>
-                  )}
-                  {detailProduct.originalPrice && (
-                    <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded">
-                      Save ₹{detailProduct.originalPrice - detailProduct.price}
-                    </span>
-                  )}
-                </div>
+                {/* Weight Selector in Modal */}
+                {(() => {
+                  const modalVariants = getProductVariants(detailProduct);
+                  const modalSelected = getSelectedVariant(detailProduct, selectedWeights);
+                  const modalPricing = getEffectivePricing(detailProduct, modalSelected);
+                  return (
+                    <>
+                      {modalVariants.length > 0 && (
+                        <div className="mb-4">
+                          <span className="block text-xs font-semibold text-gray-600 mb-1.5">Select Weight:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {modalVariants.map((variant) => {
+                              const isSelected = modalSelected?.weight === variant.weight;
+                              return (
+                                <button
+                                  key={variant.weight}
+                                  type="button"
+                                  onClick={() => setSelectedWeights(prev => ({ ...prev, [detailProduct._id]: variant.weight }))}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-amber-900 text-white border-amber-900 shadow-xs'
+                                      : 'bg-amber-50/80 text-amber-900 border-amber-200 hover:bg-amber-100'
+                                  }`}
+                                >
+                                  {variant.weight}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pricing */}
+                      <div className="flex items-baseline gap-2 mb-6">
+                        <span className="text-3xl font-serif font-bold text-amber-950">
+                          ₹{modalPricing.price}
+                        </span>
+                        {modalPricing.hasDiscount && (
+                          <span className="text-sm text-gray-400 line-through">
+                            ₹{modalPricing.originalPrice}
+                          </span>
+                        )}
+                        {modalPricing.hasDiscount && (
+                          <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded">
+                            Save ₹{modalPricing.discount}
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-2">

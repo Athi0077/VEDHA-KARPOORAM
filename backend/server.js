@@ -30,13 +30,20 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/karupram'
   .catch(err => console.log(err));
 
 // Models
+const WeightVariantSchema = new mongoose.Schema({
+  weight: { type: String, required: true },
+  price: { type: Number, required: true },
+  originalPrice: { type: Number }
+}, { _id: false });
+
 const ProductSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   price: { type: Number, required: true },
   originalPrice: { type: Number },
   image: { type: String, required: true },
-  bulletPoints: { type: [String], default: [] }
+  bulletPoints: { type: [String], default: [] },
+  weightVariants: { type: [WeightVariantSchema], default: [] }
 });
 const Product = mongoose.model('Product', ProductSchema);
 

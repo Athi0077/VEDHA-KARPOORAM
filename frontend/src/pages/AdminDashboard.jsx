@@ -9,9 +9,10 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [prices, setPrices] = useState([]);
   
-  const [formData, setFormData] = useState({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [] });
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [], weightVariants: [] });
   const [editingId, setEditingId] = useState(null);
   const [newBulletPoint, setNewBulletPoint] = useState('');
+  const [newWeightVariant, setNewWeightVariant] = useState({ weight: '', price: '', originalPrice: '' });
   
   const [priceData, setPriceData] = useState({ title: '', amount: '', description: '', image: '' });
   const [editingPriceId, setEditingPriceId] = useState(null);
@@ -309,12 +310,58 @@ const AdminDashboard = () => {
     }));
   };
 
+  const handleAddWeightVariant = () => {
+    const weight = String(newWeightVariant.weight || '').trim();
+    const price = Number(newWeightVariant.price);
+    const originalPrice = newWeightVariant.originalPrice ? Number(newWeightVariant.originalPrice) : undefined;
+    if (!weight || !price || price <= 0) return;
+
+    const currentVariants = Array.isArray(formData.weightVariants) ? formData.weightVariants : [];
+    const nextVariant = originalPrice ? { weight, price, originalPrice } : { weight, price };
+    const existingIdx = currentVariants.findIndex(v => v.weight.toLowerCase() === weight.toLowerCase());
+    const updatedVariants = existingIdx > -1
+      ? currentVariants.map((v, idx) => (idx === existingIdx ? nextVariant : v))
+      : [...currentVariants, nextVariant];
+
+    setFormData(prev => ({
+      ...prev,
+      weightVariants: updatedVariants,
+      price: prev.price || String(price),
+      originalPrice: prev.originalPrice || (originalPrice ? String(originalPrice) : '')
+    }));
+    setNewWeightVariant({ weight: '', price: '', originalPrice: '' });
+  };
+
+  const handleRemoveWeightVariant = (indexToRemove) => {
+    const currentVariants = Array.isArray(formData.weightVariants) ? formData.weightVariants : [];
+    setFormData(prev => ({
+      ...prev,
+      weightVariants: currentVariants.filter((_, idx) => idx !== indexToRemove)
+    }));
+  };
+
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
     try {
+      const cleanedVariants = (Array.isArray(formData.weightVariants) ? formData.weightVariants : [])
+        .filter(v => v && String(v.weight || '').trim() !== '' && Number(v.price) > 0)
+        .map(v => ({
+          weight: String(v.weight).trim(),
+          price: Number(v.price),
+          ...(v.originalPrice ? { originalPrice: Number(v.originalPrice) } : {})
+        }));
+
+      const fallbackPrice = cleanedVariants.length > 0 ? cleanedVariants[0].price : formData.price;
+      const fallbackOriginal = cleanedVariants.length > 0 && !formData.originalPrice
+        ? cleanedVariants[0].originalPrice
+        : formData.originalPrice;
+
       const payload = {
         ...formData,
-        bulletPoints: Array.isArray(formData.bulletPoints) ? formData.bulletPoints : []
+        price: Number(formData.price || fallbackPrice),
+        ...(fallbackOriginal ? { originalPrice: Number(fallbackOriginal) } : {}),
+        bulletPoints: Array.isArray(formData.bulletPoints) ? formData.bulletPoints : [],
+        weightVariants: cleanedVariants
       };
 
       let targetId = editingId;
@@ -333,11 +380,12 @@ const AdminDashboard = () => {
         saveBulletsToLocalStorage(payload.name, payload.bulletPoints);
       }
 
-      setFormData({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [] });
+      setFormData({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [], weightVariants: [] });
       setNewBulletPoint('');
+      setNewWeightVariant({ weight: '', price: '', originalPrice: '' });
       setEditingId(null);
       fetchProducts();
-      alert('Product saved successfully with bullet points!');
+      alert('Product saved successfully!');
     } catch (err) {
       console.error(err);
       if (editingId) {
@@ -357,10 +405,12 @@ const AdminDashboard = () => {
 
     setFormData({
       ...prod,
-      bulletPoints: existingBullets || []
+      bulletPoints: existingBullets || [],
+      weightVariants: Array.isArray(prod.weightVariants) ? prod.weightVariants : []
     });
     setEditingId(prod._id);
     setNewBulletPoint('');
+    setNewWeightVariant({ weight: '', price: '', originalPrice: '' });
   };
 
   const handleDelete = async (id) => {
@@ -500,8 +550,10 @@ const AdminDashboard = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Current Price (₹)</label>
-                      <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full px-4 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-amber-500" />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Base / Default Price (₹) {(formData.weightVariants || []).length > 0 && <span className="text-xs text-gray-400">(auto-filled from 1st weight if empty)</span>}
+                      </label>
+                      <input required={(formData.weightVariants || []).length === 0} type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full px-4 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-amber-500" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Original Price (₹)</label>
@@ -584,9 +636,87 @@ const AdminDashboard = () => {
                     )}
                   </div>
 
+                  {/* Weight Categories & Pricing Section */}
+                  <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block text-sm font-semibold text-amber-950">
+                          Weight Categories &amp; Prices (e.g. 50g, 100g, 1kg)
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          Add weight options with separate prices. Users can select a weight to see its price.
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold bg-orange-100 text-orange-900 px-2.5 py-1 rounded-full border border-orange-300">
+                        {(formData.weightVariants || []).length} Weights
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Weight (e.g. 100g, 1kg)"
+                        value={newWeightVariant.weight}
+                        onChange={(e) => setNewWeightVariant(prev => ({ ...prev, weight: e.target.value }))}
+                        className="px-3 py-2 text-sm rounded-lg bg-white border border-orange-300 focus:ring-2 focus:ring-amber-500"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Price (₹)"
+                        value={newWeightVariant.price}
+                        onChange={(e) => setNewWeightVariant(prev => ({ ...prev, price: e.target.value }))}
+                        className="px-3 py-2 text-sm rounded-lg bg-white border border-orange-300 focus:ring-2 focus:ring-amber-500"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Original Price (₹, opt)"
+                        value={newWeightVariant.originalPrice}
+                        onChange={(e) => setNewWeightVariant(prev => ({ ...prev, originalPrice: e.target.value }))}
+                        className="px-3 py-2 text-sm rounded-lg bg-white border border-orange-300 focus:ring-2 focus:ring-amber-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddWeightVariant}
+                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add Weight</span>
+                      </button>
+                    </div>
+
+                    {Array.isArray(formData.weightVariants) && formData.weightVariants.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {formData.weightVariants.map((variant, idx) => (
+                          <div
+                            key={`${variant.weight}-${idx}`}
+                            className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-orange-200 text-xs sm:text-sm text-gray-800 shadow-2xs"
+                          >
+                            <span className="font-bold text-amber-950">{variant.weight}</span>
+                            <span className="text-orange-700 font-semibold">₹{variant.price}</span>
+                            {variant.originalPrice && (
+                              <span className="text-gray-400 line-through text-xs">₹{variant.originalPrice}</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveWeightVariant(idx)}
+                              className="p-0.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                              title="Remove weight"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic">
+                        No weight categories added yet. Add weights like 50g, 100g, 1kg above.
+                      </p>
+                    )}
+                  </div>
+
                   <div className="flex justify-end space-x-3 pt-2">
                     {editingId && (
-                      <button type="button" onClick={() => {setEditingId(null); setFormData({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [] }); setNewBulletPoint('');}} className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Cancel</button>
+                      <button type="button" onClick={() => {setEditingId(null); setFormData({ name: '', description: '', price: '', originalPrice: '', image: '', bulletPoints: [], weightVariants: [] }); setNewBulletPoint(''); setNewWeightVariant({ weight: '', price: '', originalPrice: '' });}} className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Cancel</button>
                     )}
                     <button type="submit" className="bg-amber-800 hover:bg-amber-900 text-white px-6 py-2 rounded-lg font-medium shadow flex items-center">
                       <Plus className="w-4 h-4 mr-2" />
@@ -609,6 +739,15 @@ const AdminDashboard = () => {
                         <div>
                           <h3 className="font-medium text-gray-900">{product.name}</h3>
                           <p className="text-sm text-gray-500 font-medium">₹{product.price} <span className="line-through text-gray-300 ml-2">₹{product.originalPrice}</span></p>
+                          {Array.isArray(product.weightVariants) && product.weightVariants.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                              {product.weightVariants.map((v, idx) => (
+                                <span key={idx} className="text-[11px] bg-amber-50 text-amber-900 border border-amber-200 px-2 py-0.5 rounded-md font-medium">
+                                  {v.weight}: ₹{v.price}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
